@@ -3,6 +3,7 @@
 ## Sin publicar
 - Endpoint `/metrics` con la tabla de métricas de cada versión del modelo frente a los baselines, métricas por clase, matriz de confusión y métricas en producción.
 - El registro guarda las métricas completas de cada entrenamiento nuevo.
+- Fotos de plazas de mercado en el dashboard: portada, tarjeta del mercado y banda final, con banderines y colores tomados de las fotos.
 
 ## v0.4.0 · Beta para el restaurante
 - Lista de mercado del restaurante guardada en la base, con costo hoy, costo esperado la próxima semana y costo siguiendo la recomendación.

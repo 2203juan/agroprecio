@@ -86,6 +86,7 @@ export default function App() {
       <Board alerts={alerts} week={week} selected={product} onPick={setProduct} />
       {product && <ProductDetail alert={byProduct[product]} />}
 
+      <PhotoBand />
       <footer className="muted small">
         Precios mayoristas de la central Cavasa (Cali) publicados por el SIPSA – DANE, en pesos por kilo.
         Las proyecciones son estimaciones{model ? ` del modelo ${model.version}` : ""}: el precio real puede cambiar.
@@ -94,21 +95,48 @@ export default function App() {
   );
 }
 
+const FLAG_COLORS = ["naranja", "turquesa", "maiz", "rosa", "hoja", "morado"];
+
+// Banderines de plaza de mercado
+function Bunting() {
+  return (
+    <div className="bunting" aria-hidden="true">
+      {Array.from({ length: 60 }, (_, i) => <span key={i} className={FLAG_COLORS[i % FLAG_COLORS.length]} />)}
+    </div>
+  );
+}
+
 function Shell({ children }) {
   return (
     <>
-      <div className="toldo" aria-hidden="true" />
-      <main className="page">
-        <header className="brand">
+      <header className="hero">
+        <Bunting />
+        <div className="hero-content">
           <div className="sign">
             <h1>AgroPrecio</h1>
             <p>Qué comprar esta semana en Cavasa</p>
           </div>
           <p className="tagline">Precios de la plaza para tu cocina · Cali</p>
-        </header>
-        {children}
-      </main>
+          <p className="hero-text">
+            Cada semana leemos el boletín de precios mayoristas del DANE y te decimos qué conviene comprar ya,
+            qué puedes esperar y cuánto te va a costar el mercado.
+          </p>
+        </div>
+      </header>
+      <main className="page">{children}</main>
     </>
+  );
+}
+
+function PhotoBand() {
+  return (
+    <section className="band">
+      <Bunting />
+      <div className="band-content">
+        <p className="band-title">De la plaza a tu cocina</p>
+        <p>Frutas, verduras y tubérculos de Cavasa, con precios que se actualizan cada semana.</p>
+      </div>
+    </section>
   );
 }
 
@@ -285,6 +313,7 @@ function Totals({ totals, hasItems }) {
   const vsNext = totals.costo_proxima - totals.costo_recomendado;
   return (
     <div className="card totals">
+      <div className="cover" role="img" aria-label="Puesto de verduras en una plaza de mercado" />
       <h2>Tu mercado de la semana</h2>
       <div className="total main">
         <span>Siguiendo AgroPrecio</span>

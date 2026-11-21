@@ -12,7 +12,10 @@
   --madera: #8a5a2b;
   --pizarra: #233a2d;
   --tiza: #f4efe1;
-  --toldo-claro: #fffcf4;
+  --turquesa: #12a3a6;
+  --rosa: #e2427a;
+  --morado: #7a4fc4;
+  --sombra: 0 10px 30px #2b211826;
   font-family: "Nunito", system-ui, sans-serif;
   color: var(--ink);
   background: var(--paper);
@@ -31,7 +34,10 @@
     --naranja: #ff9a4c;
     --madera: #6e4720;
     --pizarra: #17271d;
-    --toldo-claro: #efe6d4;
+    --turquesa: #3cc4c6;
+    --rosa: #f0679a;
+    --morado: #a27ce6;
+    --sombra: 0 10px 30px #0008;
   }
 }
 
@@ -48,23 +54,39 @@ button { font: inherit; cursor: pointer; }
 .ok { color: var(--hoja); font-weight: 700; }
 .num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 
-/* Toldo de plaza: franjas de colores con borde ondulado */
-.toldo {
-  height: 34px;
-  background: repeating-linear-gradient(90deg,
-    var(--hoja) 0 40px, var(--toldo-claro) 40px 80px,
-    var(--tomate) 80px 120px, var(--toldo-claro) 120px 160px,
-    var(--maiz) 160px 200px, var(--toldo-claro) 200px 240px);
-  -webkit-mask: radial-gradient(20px at 20px 20px, #000 97%, #0000) 0 0 / 40px 100%,
-                linear-gradient(#000 0 0) top / 100% 20px no-repeat;
-          mask: radial-gradient(20px at 20px 20px, #000 97%, #0000) 0 0 / 40px 100%,
-                linear-gradient(#000 0 0) top / 100% 20px no-repeat;
-}
+.page { max-width: 1200px; margin: 0 auto; padding: 0 16px 48px; display: flex; flex-direction: column; gap: 18px; }
 
-.page { max-width: 1200px; margin: 0 auto; padding: 12px 16px 48px; display: flex; flex-direction: column; gap: 18px; }
+/* Portada con la foto de la plaza */
+.hero {
+  position: relative;
+  min-height: 420px;
+  background:
+    linear-gradient(90deg, #1a1510b3 0%, #1a151000 65%),
+    linear-gradient(180deg, #1a151033 0%, #1a151000 30%, #1a1510b0 70%, #1a1510e6 100%),
+    url("/img/plaza-frutas.webp") center 62% / cover;
+  display: flex;
+  flex-direction: column;
+}
+.hero-content {
+  max-width: 1200px; width: 100%; margin: auto auto 0; padding: 24px 16px 84px;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 10px; color: #fffaf0;
+}
+.hero-text { max-width: 560px; font-size: 17px; line-height: 1.5; text-shadow: 0 1px 8px #000a; }
+
+/* Banderines: un cordel con triángulos de colores */
+.bunting {
+  display: flex; gap: 6px; overflow: hidden; padding: 0 8px;
+  border-top: 2px solid #3a2f24; height: 34px; flex-shrink: 0;
+}
+.bunting span { flex: 0 0 34px; height: 30px; clip-path: polygon(0 0, 100% 0, 50% 100%); }
+.bunting .naranja { background: var(--naranja); }
+.bunting .turquesa { background: var(--turquesa); }
+.bunting .maiz { background: var(--maiz); }
+.bunting .rosa { background: var(--rosa); }
+.bunting .hoja { background: var(--hoja); }
+.bunting .morado { background: var(--morado); }
 
 /* Letrero pintado a mano */
-.brand { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
 .sign {
   background: var(--maiz);
   color: #2b2118;
@@ -72,13 +94,13 @@ button { font: inherit; cursor: pointer; }
   border-radius: 10px;
   padding: 8px 18px 10px;
   box-shadow: 4px 4px 0 #2b2118;
-  transform: rotate(-1deg);
+  transform: rotate(-1.5deg);
 }
-.sign h1 { font-family: "Lilita One", sans-serif; font-weight: 400; font-size: 38px; line-height: 1; color: var(--tomate); -webkit-text-stroke: 1px #2b2118; }
-.sign p { font-weight: 800; font-size: 14px; }
-.tagline { font-family: "Caveat", cursive; font-size: 24px; color: var(--hoja); }
+.sign h1 { font-family: "Lilita One", sans-serif; font-weight: 400; font-size: 44px; line-height: 1; color: var(--tomate); -webkit-text-stroke: 1px #2b2118; }
+.sign p { font-weight: 800; font-size: 15px; }
+.tagline { font-family: "Caveat", cursive; font-size: 30px; color: var(--maiz); text-shadow: 0 2px 8px #000c; margin-top: 6px; }
 
-.card { background: var(--card); border: 2px solid var(--line); border-radius: 14px; padding: 16px; }
+.card { background: var(--card); border: 2px solid var(--line); border-radius: 14px; padding: 16px; box-shadow: 0 2px 0 var(--line); }
 .card-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 12px; margin-bottom: 12px; }
 
 .btn {
@@ -98,7 +120,8 @@ button { font: inherit; cursor: pointer; }
 /* Barra de actualización */
 .update {
   display: flex; justify-content: space-between; align-items: center; gap: 16px; flex-wrap: wrap;
-  background: var(--card); border: 2px dashed var(--maiz); border-radius: 14px; padding: 12px 16px;
+  background: var(--card); border: 2px dashed var(--maiz); border-radius: 14px; padding: 14px 18px;
+  margin-top: -64px; position: relative; box-shadow: var(--sombra);
 }
 .update > div { display: flex; flex-direction: column; gap: 2px; }
 .week { font-size: 17px; }
@@ -140,6 +163,11 @@ td:first-child { font-weight: 700; min-width: 150px; }
 .hits .small { margin-left: 6px; color: var(--muted); }
 
 /* Totales */
+.totals { overflow: hidden; }
+.totals .cover {
+  margin: -16px -16px 14px; height: 150px;
+  background: linear-gradient(180deg, #0000 55%, #1a151055), url("/img/plaza-verduras.webp") center 45% / cover;
+}
 .totals h2 { margin-bottom: 10px; }
 .total { display: flex; justify-content: space-between; gap: 12px; padding: 6px 0; border-bottom: 1px dashed var(--line); font-variant-numeric: tabular-nums; }
 .total.main { font-weight: 800; font-size: 18px; border-bottom: 2px solid var(--line); }
@@ -176,10 +204,26 @@ td:first-child { font-weight: 700; min-width: 150px; }
 .key.maiz { background: var(--maiz); height: 10px; opacity: 0.6; }
 .key.dashed { background: repeating-linear-gradient(90deg, var(--muted) 0 4px, transparent 4px 7px); }
 
-footer { line-height: 1.5; text-align: center; padding-top: 8px; }
+.band {
+  position: relative; border-radius: 16px; overflow: hidden; min-height: 280px;
+  display: flex; flex-direction: column; justify-content: space-between;
+  background: linear-gradient(180deg, #1a151020, #1a1510cc 85%), url("/img/plaza-banderines.webp") center 35% / cover;
+  color: #fffaf0;
+}
+.band .bunting { border-top: none; }
+.band-content { padding: 24px; display: flex; flex-direction: column; gap: 4px; text-shadow: 0 1px 8px #000a; }
+.band-title { font-family: "Lilita One", sans-serif; font-size: 34px; color: var(--maiz); }
+
+footer { line-height: 1.5; text-align: center; padding-top: 4px; }
 
 @media (max-width: 600px) {
-  .sign h1 { font-size: 30px; }
+  .hero { min-height: 460px; background-position: center, center, 30% 60%; }
+  .hero-text { font-size: 15px; }
+  .tagline { font-size: 24px; }
+  .bunting span { flex-basis: 24px; height: 22px; }
+  .bunting { height: 26px; gap: 4px; }
+  .band-title { font-size: 28px; }
+  .sign h1 { font-size: 34px; }
   .update .btn { width: 100%; justify-content: center; }
   .restaurant { width: 100%; }
 }
