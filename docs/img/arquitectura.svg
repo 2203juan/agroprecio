@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 300" font-family="Helvetica, Arial, sans-serif" font-size="13">
+  <rect width="980" height="300" rx="12" fill="#ffffff"/>
+  <defs>
+    <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0,0 L10,5 L0,10 z" fill="#6b746e"/>
+    </marker>
+  </defs>
+
+  <g fill="#1f2a24">
+    <rect x="20" y="110" width="120" height="70" rx="8" fill="#eef2ee" stroke="#c9d3cb"/>
+    <text x="80" y="140" text-anchor="middle" font-weight="bold">DANE · SIPSA</text>
+    <text x="80" y="160" text-anchor="middle" fill="#6b746e">Excel semanal</text>
+
+    <rect x="180" y="40" width="460" height="210" rx="10" fill="none" stroke="#c9d3cb" stroke-dasharray="5 4"/>
+    <text x="410" y="62" text-anchor="middle" fill="#6b746e">pipeline · main.py (Docker / GitHub Actions)</text>
+
+    <rect x="200" y="110" width="120" height="70" rx="8" fill="#f3e6d6" stroke="#d9b98f"/>
+    <text x="260" y="140" text-anchor="middle" font-weight="bold">Bronze</text>
+    <text x="260" y="160" text-anchor="middle" fill="#6b746e">xlsx + manifest</text>
+
+    <rect x="350" y="110" width="120" height="70" rx="8" fill="#e6e9ec" stroke="#b9c0c7"/>
+    <text x="410" y="140" text-anchor="middle" font-weight="bold">Silver</text>
+    <text x="410" y="160" text-anchor="middle" fill="#6b746e">precios.parquet</text>
+
+    <rect x="500" y="110" width="120" height="70" rx="8" fill="#f6edc8" stroke="#d8c271"/>
+    <text x="560" y="140" text-anchor="middle" font-weight="bold">Gold</text>
+    <text x="560" y="160" text-anchor="middle" fill="#6b746e">features + SQLite</text>
+
+    <rect x="350" y="200" width="270" height="36" rx="8" fill="#e3f1e8" stroke="#9fcbb0"/>
+    <text x="485" y="223" text-anchor="middle">calidad · modelo · monitoreo · boletín (Claude)</text>
+
+    <rect x="680" y="110" width="120" height="70" rx="8" fill="#e3ecf7" stroke="#9db6d8"/>
+    <text x="740" y="140" text-anchor="middle" font-weight="bold">API</text>
+    <text x="740" y="160" text-anchor="middle" fill="#6b746e">FastAPI :8000</text>
+
+    <rect x="840" y="110" width="120" height="70" rx="8" fill="#e3ecf7" stroke="#9db6d8"/>
+    <text x="900" y="140" text-anchor="middle" font-weight="bold">Dashboard</text>
+    <text x="900" y="160" text-anchor="middle" fill="#6b746e">React :8080</text>
+  </g>
+
+  <g stroke="#6b746e" stroke-width="1.5" fill="none" marker-end="url(#a)">
+    <line x1="140" y1="145" x2="198" y2="145"/>
+    <line x1="320" y1="145" x2="348" y2="145"/>
+    <line x1="470" y1="145" x2="498" y2="145"/>
+    <line x1="560" y1="180" x2="560" y2="198"/>
+    <line x1="620" y1="145" x2="678" y2="145"/>
+    <line x1="800" y1="145" x2="838" y2="145"/>
+  </g>
+</svg>

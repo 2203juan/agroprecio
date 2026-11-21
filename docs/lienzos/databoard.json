@@ -1,0 +1,78 @@
+{
+  "project": "AgroPrecio",
+  "date": "2026-11-21",
+  "authors": [
+    "Juan Hoyos",
+    "",
+    "",
+    ""
+  ],
+  "blocks": {
+    "users": [
+      "Dueños de restaurantes pequeños de Cali (20 a 60 almuerzos diarios)",
+      "Compran insumos frescos cada semana en Cavasa o en galerías",
+      "Deciden por costumbre o por lo que dice el vendedor"
+    ],
+    "needs": [
+      "Saber qué insumos conviene comprar ya y cuáles esperar",
+      "La información de precios existe pero no llega en un formato usable"
+    ],
+    "existing": [
+      "Boletín semanal SIPSA (DANE): 92 mercados, 363 productos, precio mínimo, máximo y medio por kilo",
+      "182 boletines de mayo 2023 a octubre 2026, unas 786 mil filas",
+      "Calidad: 3 semanas faltantes, duplicados, semanas cortas por festivos, títulos en texto libre",
+      "Lo controla el DANE; es público y no tiene datos personales"
+    ],
+    "insights": [
+      "Cerca de 36 % de las semanas un producto sube más de 3 % y otro 36 % baja más de 3 %",
+      "H1: Cavasa sigue con rezago a la mediana nacional (validada: es de las variables más importantes)",
+      "H2: repetir lo de la semana pasada es un baseline difícil (el modelo lo supera por poco)",
+      "H3: un mensaje corto es más útil que una tabla (pendiente)"
+    ],
+    "idea": [
+      "Predecir cada semana si 20 insumos van a subir, bajar o seguir estables en Cavasa",
+      "Convertirlo en una recomendación de compra redactada por Claude"
+    ],
+    "needed": [
+      "Abastecimiento semanal (hoja 1.10 del mismo boletín)",
+      "Clima del IDEAM en zonas productoras",
+      "Calendario de festivos y temporadas",
+      "Retroalimentación voluntaria de los usuarios"
+    ],
+    "prototype": [
+      "MVP: pipeline medallón Excel → Parquet → SQLite y baseline de persistencia",
+      "Alpha: Random Forest versionado, API FastAPI y dashboard React",
+      "Beta: boletín con Claude, monitoreo de acierto y drift, CI/CD y Docker"
+    ],
+    "risks": [
+      "Cambio de formato del Excel → reglas de calidad que detienen el pipeline",
+      "Errores del modelo → mostrar la confianza y aclarar que es una estimación",
+      "El LLM inventa cifras → validación automática y plantilla de respaldo",
+      "Sesgo por el periodo de inflación → monitoreo y reentrenamiento",
+      "Sin datos personales; con WhatsApp, solo el número con consentimiento (Ley 1581)",
+      "Trazabilidad: manifest de bronze y registro de modelos"
+    ],
+    "touchpoints": [
+      "Dashboard web",
+      "Boletín de texto (después por WhatsApp)",
+      "API para sistemas de inventario o POS"
+    ],
+    "channels": [
+      "Piloto con 5 a 10 restaurantes de Cali",
+      "Asociaciones de restaurantes",
+      "Proveedores de Cavasa que reenvían el boletín"
+    ],
+    "metrics": [
+      "F1 del modelo contra el baseline: 0,45 contra 0,40",
+      "Ahorro simulado: 0,4 % (meta 1 %)",
+      "Acierto de las últimas 8 semanas, con reentrenamiento si baja de 0,40",
+      "Experimento A/B de 4 semanas con y sin boletín"
+    ],
+    "learning": [
+      "Se pudo automatizar la lectura de un Excel difícil",
+      "Ganarle al baseline por mucho exige más datos, no un modelo más complejo",
+      "Usar también la predicción 'baja' para subir el ahorro",
+      "Falta validar con usuarios reales"
+    ]
+  }
+}
