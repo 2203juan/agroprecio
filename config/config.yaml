@@ -1,0 +1,54 @@
+project: agroprecio
+
+paths:
+  bronze: data/bronze
+  silver: data/silver
+  gold: data/gold
+  models: models
+  logs: logs
+  database: data/gold/agroprecio.db
+
+source:
+  name: DANE - SIPSA boletín semanal de precios mayoristas
+  listing_url: https://www.dane.gov.co/index.php/component/content/article/5961-sipsa-precios-mayoristas-resultado-semanal-historicos?Itemid=864&catid=203
+  ajax_url: https://www.dane.gov.co/index.php?option=com_ajax&module=documentos_historicos&method=filter&format=json&dhv=134
+  file_url: https://www.dane.gov.co/documentos/sipsa/DOC-{doc_id}/anexos
+  max_file_mb: 5
+
+market: Cali, Cavasa
+
+products:
+  - Aguacate papelillo
+  - Ahuyama
+  - Cebolla cabezona blanca bogotana
+  - Cebolla junca Aquitania
+  - Cilantro
+  - Habichuela
+  - Lechuga Batavia
+  - Limón Tahití
+  - Lulo
+  - Mango Tommy
+  - Maracuyá
+  - Mora de Castilla
+  - Papa capira
+  - Papa parda pastusa
+  - Pimentón
+  - Plátano hartón verde
+  - Tomate chonto
+  - Tomate de árbol
+  - Yuca ICA
+  - Zanahoria bogotana
+
+model:
+  threshold: 0.03
+  test_weeks: 20
+  min_history_weeks: 8
+  random_state: 42
+
+monitoring:
+  drift_zscore: 3.0
+  min_accuracy: 0.40
+
+llm:
+  model: claude-opus-5-5
+  max_tokens: 4000

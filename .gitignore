@@ -1,0 +1,20 @@
+.venv/
+__pycache__/
+.pytest_cache/
+.env
+
+# Los datos y modelos se regeneran con `python main.py`
+data/bronze/*
+data/silver/*
+data/gold/*
+models/*
+logs/*
+!data/**/.gitkeep
+!models/.gitkeep
+!logs/.gitkeep
+!data/bronze/manifest.csv
+
+frontend/node_modules/
+frontend/dist/
+.DS_Store
+.ipynb_checkpoints/
