@@ -25,14 +25,14 @@ cp .env.example .env    # opcional: ANTHROPIC_API_KEY y puertos
 | `make docker` | Todo con Docker: pipeline, API y dashboard en http://localhost:8080 |
 | `make docker-pipeline` | Solo el pipeline en Docker |
 | `make docker-api` / `make docker-web` | Solo la API, o API + dashboard, sin correr el pipeline |
-| `make docker-parar` | Apaga los contenedores |
-| `make instalar` | Crea `.venv` e instala Python y Node para correr local |
-| `make todo` | Local: pipeline y luego API + dashboard juntos |
-| `make pipeline` / `make pipeline-rapido` | Pipeline completo, o sin descargar |
-| `make reentrenar` | Fuerza un modelo nuevo |
+| `make docker-stop` | Apaga los contenedores |
+| `make install` | Crea `.venv` e instala Python y Node para correr local |
+| `make all` | Local: pipeline y luego API + dashboard juntos |
+| `make pipeline` / `make pipeline-fast` | Pipeline completo, o sin descargar |
+| `make retrain` | Fuerza un modelo nuevo |
 | `make api` / `make web` | Solo la API (:8000) o solo el dashboard (:5173) |
 | `make test` / `make notebook` | Tests y notebook de exploración |
-| `make limpiar` | Borra silver, gold, modelos y logs (bronze se conserva) |
+| `make clean` | Borra silver, gold, modelos y logs (bronze se conserva) |
 
 Si un puerto ya está ocupado: `API_PORT=8001 make docker`, o cámbialo en `.env`.
 
