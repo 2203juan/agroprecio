@@ -23,7 +23,10 @@ def predict_latest(gold, model, entry):
     out["accion"] = out["prediccion"].map(ACTIONS)
     out["modelo_version"] = entry["version"]
     out["fecha_prediccion"] = datetime.now().isoformat(timespec="seconds")
-    return out.sort_values(["prediccion", "confianza"], ascending=[True, False]).reset_index(drop=True)
+    # Primero lo que conviene comprar ya
+    order = out["prediccion"].map({"sube": 0, "baja": 1, "estable": 2})
+    return out.assign(_orden=order).sort_values(["_orden", "confianza"], ascending=[True, False]) \
+              .drop(columns="_orden").reset_index(drop=True)
 
 
 def add_to_log(log, new):
