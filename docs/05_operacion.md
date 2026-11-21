@@ -5,6 +5,7 @@
 ```
 Viernes      DANE publica el boletín
 Sábado 8am   GitHub Actions corre pipeline_semanal.yml
+             (o la API, si está desplegada, o el botón "Buscar boletín nuevo")
              ├─ restaura data/ y models/ de la corrida anterior
              ├─ descarga solo los boletines nuevos (bronze)
              ├─ limpia, valida y construye silver y gold
@@ -14,6 +15,8 @@ Sábado 8am   GitHub Actions corre pipeline_semanal.yml
              ├─ genera el boletín con Claude
              └─ publica la base, el registro y los logs como artefactos
 ```
+
+En un despliegue con Docker, la API también corre el pipeline: con el botón *Buscar boletín nuevo* del dashboard (`POST /actualizar`, el progreso se consulta con `GET /actualizar` y queda en `logs/actualizacion.log`) y de forma automática cada sábado a las 8 a.m., salvo que ese día ya haya corrido. El día y la hora están en `update` dentro de `config/config.yaml`. Solo puede haber una actualización a la vez.
 
 ## DataOps
 

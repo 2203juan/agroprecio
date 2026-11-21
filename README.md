@@ -12,6 +12,17 @@ Un restaurante pequeño gasta buena parte de su costo en frutas, verduras y tub�
 
 Más detalle en [docs/01_problema_y_kpis.md](docs/01_problema_y_kpis.md).
 
+## Cómo lo usa el restaurante
+
+El dashboard (http://localhost:8080) está pensado para el dueño del restaurante, no para un analista:
+
+1. **Mi lista de mercado.** Anota lo que compra cada semana y cuántos kilos. La lista queda guardada en la base (tabla `listas`). Por cada producto ve el precio de hoy, el rango esperado para la próxima semana, qué hacer (*Compra ya*, *Espera* o *Normal*) y cuántas veces acertó el modelo con ese producto en las últimas 8 semanas.
+2. **Tu mercado de la semana.** Cuánto le cuesta la lista si compra todo hoy, si espera todo a la próxima semana y si sigue la recomendación.
+3. **Buscar boletín nuevo.** Cuando el DANE publica un boletín, el botón lo descarga y corre todo el pipeline, mostrando el progreso. Además, la API lo hace sola cada sábado a las 8 a.m. (`update` en `config/config.yaml`).
+4. **Pizarra de Cavasa.** Los 20 productos con su precio, el cambio frente a la semana pasada y lo que se espera.
+5. **Detalle por producto.** Los últimos 6 meses en Cavasa frente a la mediana nacional y el rango esperado para la próxima semana.
+6. **Boletín de la semana**, redactado por Claude, listo para copiar y mandar por WhatsApp.
+
 ## Cómo correrlo
 
 Todo se maneja con `make`. Escribe `make` para ver la lista de comandos.

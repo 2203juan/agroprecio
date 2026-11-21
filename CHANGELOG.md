@@ -1,5 +1,12 @@
 # Historial de versiones
 
+## v0.4.0 · Beta para el restaurante
+- Lista de mercado del restaurante guardada en la base, con costo hoy, costo esperado la próxima semana y costo siguiendo la recomendación.
+- Rango de precio esperado para la próxima semana por producto.
+- Aciertos del modelo por producto en las últimas 8 semanas.
+- Botón para buscar el boletín nuevo del DANE y actualización automática los sábados desde la API.
+- Dashboard rediseñado con estilo de plaza de mercado: toldo, letrero, pizarra de precios y detalle por producto.
+
 ## v0.3.0 · Beta
 - Boletín semanal redactado con Claude, con validación de cifras y plantilla de respaldo.
 - Registro de cada llamada al LLM en `logs/llm.jsonl`.
