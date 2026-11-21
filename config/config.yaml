@@ -52,3 +52,9 @@ monitoring:
 llm:
   model: claude-opus-5-5
   max_tokens: 4000
+
+# Actualización automática desde la API (además del botón del dashboard)
+update:
+  auto: true
+  weekday: 5   # 0 = lunes ... 5 = sábado
+  hour: 8
