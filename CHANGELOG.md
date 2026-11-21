@@ -1,5 +1,9 @@
 # Historial de versiones
 
+## Sin publicar
+- Endpoint `/metrics` con la tabla de métricas de cada versión del modelo frente a los baselines, métricas por clase, matriz de confusión y métricas en producción.
+- El registro guarda las métricas completas de cada entrenamiento nuevo.
+
 ## v0.4.0 · Beta para el restaurante
 - Lista de mercado del restaurante guardada en la base, con costo hoy, costo esperado la próxima semana y costo siguiendo la recomendación.
 - Rango de precio esperado para la próxima semana por producto.

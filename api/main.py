@@ -5,12 +5,15 @@ from pathlib import Path
 
 import yaml
 import pandas as pd
+import joblib
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
 from api import actualizar
 from src.lista import cost_list, normalize_items
+from src.model.metrics import classification_metrics, evaluate_version
 from src.load.load_database import query, read_table, save_table
 
 CONFIG = yaml.safe_load(open(os.getenv("AGRO_CONFIG", "config/config.yaml"), encoding="utf-8"))
@@ -129,3 +132,52 @@ def update():
 @app.get("/actualizar")
 def update_status():
     return actualizar.status()
+
+
+# ---------- Métricas de los modelos ----------
+
+def live_metrics():
+    """Predicciones reales de producción (no backtest) que ya tienen resultado."""
+    df = query(
+        "SELECT p.modelo_version AS version, p.prediccion, f.clase FROM predicciones p "
+        "JOIN features f ON f.producto = p.producto AND f.semana_inicio = p.semana_inicio "
+        "WHERE p.confianza IS NOT NULL AND f.clase IS NOT NULL", DB)
+    return [{"version": v, **classification_metrics(g["clase"], g["prediccion"])}
+            for v, g in df.groupby("version")]
+
+
+@app.get("/metrics")
+def metrics(formato: str = "json"):
+    """Tabla de métricas de cada versión del modelo frente a los baselines,
+    sobre su periodo de prueba. Con ?formato=html se ve como tabla en el navegador."""
+    path = Path(CONFIG["paths"]["models"]) / "registry.json"
+    registry = json.loads(path.read_text()) if path.exists() else []
+    gold = read_table("features", DB)
+    gold["semana_inicio"] = pd.to_datetime(gold["semana_inicio"])
+
+    table, detail = [], {}
+    for entry in registry:
+        file = Path(CONFIG["paths"]["models"]) / f"{entry['version']}.joblib"
+        if not file.exists():
+            continue
+        rows, classes, cm = evaluate_version(joblib.load(file), entry, gold, CONFIG)
+        table += rows
+        detail[entry["version"]] = {"por_clase": records(classes), "matriz_confusion": cm}
+
+    live = live_metrics()
+    if formato == "html":
+        return HTMLResponse(metrics_html(table, live))
+    return {"tabla": table, "detalle_modelo": detail, "en_produccion": live}
+
+
+def metrics_html(table, live):
+    style = ("<style>body{font-family:system-ui;margin:24px;color:#2b2118;background:#fbf3e1}"
+             "table{border-collapse:collapse;font-size:13px;margin-bottom:24px}"
+             "th,td{border:1px solid #ecdfc4;padding:4px 8px;text-align:right}"
+             "th{background:#2e7d32;color:#fff}td:nth-child(-n+3){text-align:left}</style>")
+    live_html = pd.DataFrame(live).to_html(index=False, na_rep="–") if live else \
+        "<p>Todavía no hay predicciones de producción con resultado real.</p>"
+    return (f"<html><head><meta charset='utf-8'><title>Métricas AgroPrecio</title>{style}</head><body>"
+            "<h2>Métricas por versión (periodo de prueba)</h2>"
+            f"{pd.DataFrame(table).to_html(index=False, na_rep='–')}"
+            f"<h2>Métricas en producción</h2>{live_html}</body></html>")

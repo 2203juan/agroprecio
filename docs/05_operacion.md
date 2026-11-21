@@ -34,6 +34,7 @@ En un despliegue con Docker, la API también corre el pipeline: con el botón *B
 
 | Práctica | Implementación |
 |---|---|
+| Tabla de métricas | `GET /metrics` re-evalúa cada versión del registro y los baselines sobre el mismo periodo de prueba (accuracy, balanced accuracy, precision, recall, F1, kappa, MCC, log loss, ROC AUC, ahorro), con métricas por clase, matriz de confusión y métricas en producción |
 | Versionado de modelos | Cada entrenamiento guarda `models/vAAAAMMDD_HHMMSS.joblib` |
 | Registro | `models/registry.json`: versión, fecha, rango de datos, variables, parámetros, métricas y estado (`produccion`, `archivado`, `rechazado`) |
 | Regla de promoción | Un modelo pasa a producción solo si le gana al baseline en F1 y tiene accuracy ≥ 0,40 |

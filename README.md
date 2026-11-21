@@ -104,6 +104,8 @@ Cada ejecución corre 11 reglas de calidad sobre silver y gold y las guarda en l
 | Baseline: repetir lo de la semana pasada | 0,40 | 0,40 | -0,3 % |
 | Baseline: siempre estable | 0,27 | 0,14 | 0 % |
 
+`GET /metrics` re-evalúa cada versión guardada sobre su periodo de prueba, junto a los dos baselines, y devuelve accuracy, balanced accuracy, precision, recall, F1 (macro y ponderado), kappa de Cohen, MCC, log loss, ROC AUC y el ahorro simulado. También trae las métricas por clase, la matriz de confusión y el acierto de las predicciones de producción que ya tienen resultado real. Con `/metrics?formato=html` se ve como tabla en el navegador.
+
 Un modelo solo pasa a producción si le gana al baseline. Las versiones quedan en `models/registry.json` con sus datos, parámetros y métricas. Ver [docs/model_card.md](docs/model_card.md).
 
 ## Operación (MLOps, LLMOps y DataOps)

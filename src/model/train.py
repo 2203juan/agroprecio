@@ -7,10 +7,10 @@ import joblib
 import pandas as pd
 from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score, f1_score
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder
 
+from src.model.metrics import classification_metrics, simulated_saving
 from src.transform.gold_transformations import FEATURES, classify
 
 
@@ -33,19 +33,9 @@ def split_by_time(gold, test_weeks):
     return data[data["semana_inicio"] < cut], data[data["semana_inicio"] >= cut]
 
 
-def simulated_saving(test, pred):
-    """Ahorro si el restaurante compra esta semana cuando el modelo dice 'sube'
-    y, si no, compra la semana siguiente como de costumbre."""
-    t = test.assign(pred=pred)
-    paid_normal = t["precio_siguiente"].sum()
-    paid_model = t["precio_siguiente"].where(t["pred"] != "sube", t["precio"]).sum()
-    return float(1 - paid_model / paid_normal)
-
-
-def evaluate(test, pred):
+def evaluate(test, pred, proba=None):
     return {
-        "accuracy": round(accuracy_score(test["clase"], pred), 4),
-        "f1_macro": round(f1_score(test["clase"], pred, average="macro"), 4),
+        **classification_metrics(test["clase"], pred, proba),
         "ahorro_simulado": round(simulated_saving(test, pred), 4),
     }
 
@@ -63,7 +53,7 @@ def train(gold, cfg, logger):
     baseline = test_df["cambio_1s"].apply(classify, threshold=mcfg["threshold"])
 
     metrics = {
-        "modelo": evaluate(test_df, pred),
+        "modelo": evaluate(test_df, pred, model.predict_proba(test_df[["producto"] + FEATURES])),
         "baseline_persistencia": evaluate(test_df, baseline),
         "baseline_estable": evaluate(test_df, ["estable"] * len(test_df)),
     }
