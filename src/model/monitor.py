@@ -50,3 +50,10 @@ def summary(scored, drift, cfg, entry):
         "productos_con_drift": int(drift["drift"].sum()),
         "requiere_reentrenar": bool(needs_retrain),
     }])
+
+
+def product_accuracy(scored, weeks=8):
+    """Aciertos por producto en sus últimas semanas evaluadas (ej.: 5 de 8)."""
+    recent = scored.sort_values("semana_inicio").groupby("producto").tail(weeks)
+    return (recent.groupby("producto", as_index=False)
+            .agg(aciertos=("acierto", "sum"), evaluadas=("acierto", "size")))

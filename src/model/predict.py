@@ -35,3 +35,16 @@ def add_to_log(log, new):
     both = pd.concat([log, new[keep]], ignore_index=True) if not log.empty else new[keep]
     both["semana_inicio"] = pd.to_datetime(both["semana_inicio"])
     return both.drop_duplicates(["semana_inicio", "producto"], keep="last")
+
+
+def expected_range(gold, alerts):
+    """Rango de precio para la próxima semana: lo que pasó con ese producto
+    las veces que tuvo la misma clase (percentiles 25 y 75 del cambio)."""
+    hist = gold.dropna(subset=["clase"])
+    q = (hist.groupby(["producto", "clase"])["cambio_siguiente"]
+         .quantile([0.25, 0.75]).unstack().reset_index()
+         .rename(columns={"clase": "prediccion", 0.25: "q25", 0.75: "q75"}))
+    out = alerts.merge(q, on=["producto", "prediccion"], how="left")
+    out["precio_min_esperado"] = (out["precio"] * (1 + out["q25"].fillna(0))).round()
+    out["precio_max_esperado"] = (out["precio"] * (1 + out["q75"].fillna(0))).round()
+    return out.drop(columns=["q25", "q75"])

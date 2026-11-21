@@ -16,7 +16,7 @@ from src.extract.extract_excel import download_bulletins, extract_all
 from src.llm.boletin import generate_bulletin
 from src.load.load_database import read_table, save_table
 from src.model import monitor
-from src.model.predict import add_to_log, predict_latest
+from src.model.predict import add_to_log, expected_range, predict_latest
 from src.model.train import load_production, train
 from src.quality import check_gold, check_silver
 from src.transform.clean_excel import clean_prices
@@ -88,8 +88,7 @@ def run(cfg, download=True, retrain=False):
             raise SystemExit("No hay un modelo en producción que supere el baseline")
 
     # Predicción de la semana
-    alerts = predict_latest(gold, model, entry)
-    save_table(alerts, "alertas", db)
+    alerts = expected_range(gold, predict_latest(gold, model, entry))
     save_table(add_to_log(read_table("predicciones", db), alerts), "predicciones", db)
 
     # Monitoreo
@@ -97,6 +96,9 @@ def run(cfg, download=True, retrain=False):
     drift = monitor.data_drift(gold, cfg["monitoring"]["drift_zscore"])
     save_table(monitor.weekly_accuracy(scored), "accuracy_semanal", db)
     save_table(drift, "drift", db)
+    # Cada alerta lleva cuántas veces acertó el modelo con ese producto
+    alerts = alerts.merge(monitor.product_accuracy(scored), on="producto", how="left")
+    save_table(alerts, "alertas", db)
     status = monitor.summary(scored, drift, cfg, entry)
     save_table(status, "monitoreo", db, mode="append")
     log.info("Monitoreo: %s", status.iloc[0].to_dict())
