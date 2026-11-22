@@ -5,7 +5,7 @@ import {
 
 const API = "/api";
 
-// Qué hacer según la predicción. El color y el icono son solo de la acción:
+// Qué hacer según la predicción. El color es solo de la acción:
 // el cambio de la semana pasada va en gris para no confundirlos
 const ACTION = {
   sube: { text: "Compra ya", icon: "🛒", why: "se espera que suba", className: "chip ya" },
@@ -14,14 +14,21 @@ const ACTION = {
 };
 const ORDER = ["sube", "baja", "estable"];
 
-const ICONS = {
-  "Aguacate papelillo": "🥑", "Ahuyama": "🎃", "Cebolla cabezona blanca bogotana": "🧅",
-  "Cebolla junca Aquitania": "🌱", "Cilantro": "🌿", "Habichuela": "🫛", "Lechuga Batavia": "🥬",
-  "Limón Tahití": "🍋", "Lulo": "🍊", "Mango Tommy": "🥭", "Maracuyá": "🍈",
-  "Mora de Castilla": "🫐", "Papa capira": "🥔", "Papa parda pastusa": "🥔", "Pimentón": "🫑",
-  "Plátano hartón verde": "🍌", "Tomate chonto": "🍅", "Tomate de árbol": "🍅",
-  "Yuca ICA": "🍠", "Zanahoria bogotana": "🥕",
+// Foto de cada producto (créditos en public/img/productos/CREDITOS.md)
+const PHOTOS = {
+  "Aguacate papelillo": "aguacate", "Ahuyama": "ahuyama", "Cebolla cabezona blanca bogotana": "cebolla-cabezona",
+  "Cebolla junca Aquitania": "cebolla-junca", "Cilantro": "cilantro", "Habichuela": "habichuela", "Lechuga Batavia": "lechuga",
+  "Limón Tahití": "limon", "Lulo": "lulo", "Mango Tommy": "mango", "Maracuyá": "maracuya", "Mora de Castilla": "mora",
+  "Papa capira": "papa-capira", "Papa parda pastusa": "papa-pastusa", "Pimentón": "pimenton", "Plátano hartón verde": "platano",
+  "Tomate chonto": "tomate-chonto", "Tomate de árbol": "tomate-arbol", "Yuca ICA": "yuca", "Zanahoria bogotana": "zanahoria",
 };
+
+// Decorativa: el nombre del producto siempre va al lado
+function Photo({ name, className = "photo" }) {
+  const file = PHOTOS[name];
+  if (!file) return <span className={className + " empty-photo"} aria-hidden="true" />;
+  return <img className={className} src={`/img/productos/${file}.webp`} alt="" loading="lazy" width="400" height="400" />;
+}
 
 const EXAMPLE_LIST = [
   ["Tomate chonto", 15], ["Cebolla cabezona blanca bogotana", 10], ["Papa parda pastusa", 25],
@@ -93,7 +100,7 @@ export default function App() {
   return (
     <Shell>
       <Status week={week} validity={validity} onDone={load} />
-      <Summary alerts={alerts} list={list} target={target} onPick={setProduct} />
+      <Hero alerts={alerts} list={list} target={target} onPick={setProduct} />
 
       <section className="layout">
         <ShoppingList list={list} setList={setList} byProduct={byProduct} week={week} onPick={setProduct} />
@@ -106,10 +113,12 @@ export default function App() {
 
       <Board alerts={alerts} week={week} onPick={setProduct} />
 
-      <PhotoBand />
-      <footer className="muted small">
-        Precios mayoristas de la central Cavasa (Cali) publicados por el SIPSA – DANE, en pesos por kilo.
-        Las proyecciones son estimaciones{model ? ` del modelo ${model.version}` : ""}: el precio real puede cambiar.
+      <footer>
+        <p className="brand">Agro<span>Precio</span></p>
+        <p>
+          Precios mayoristas de la central Cavasa (Cali) publicados por el SIPSA – DANE, en pesos por kilo.
+          Las proyecciones son estimaciones{model ? ` del modelo ${model.version}` : ""}: el precio real puede cambiar.
+        </p>
       </footer>
 
       <DetailDialog alert={product ? byProduct[product] : null} onClose={() => setProduct(null)} />
@@ -117,44 +126,20 @@ export default function App() {
   );
 }
 
-const FLAG_COLORS = ["naranja", "turquesa", "maiz", "rosa", "hoja", "morado"];
-
-// Banderines de plaza de mercado
-function Bunting() {
-  return (
-    <div className="bunting" aria-hidden="true">
-      {Array.from({ length: 60 }, (_, i) => <span key={i} className={FLAG_COLORS[i % FLAG_COLORS.length]} />)}
-    </div>
-  );
-}
-
 function Shell({ children }) {
   return (
     <>
-      <header className="hero">
-        <Bunting />
-        <div className="hero-content">
-          <div className="sign">
-            <h1>AgroPrecio</h1>
-            <p>Qué comprar esta semana en Cavasa</p>
-          </div>
-          <p className="tagline">Precios de la plaza para tu cocina · Cali</p>
+      <header className="topbar">
+        <div className="topbar-inner">
+          <p className="brand">
+            <svg viewBox="0 0 32 32" aria-hidden="true"><path d="M27 4C13 4 5 11 5 20c0 2 .5 3.800 1.300 5.300C10 17 16 12 23 9.500 16.500 13.500 11.500 19 9 27.500c1.300.3 2.700.5 4 .5 9 0 15-8 14-24Z" /></svg>
+            Agro<span>Precio</span>
+          </p>
+          <p className="topbar-note">Precios de la plaza para tu cocina · Cali</p>
         </div>
       </header>
       <main className="page">{children}</main>
     </>
-  );
-}
-
-function PhotoBand() {
-  return (
-    <section className="band">
-      <Bunting />
-      <div className="band-content">
-        <p className="band-title">De la plaza a tu cocina</p>
-        <p>Cada semana leemos el boletín de precios mayoristas del DANE y te decimos qué conviene comprar ya, qué puedes esperar y cuánto te va a costar el mercado.</p>
-      </div>
-    </section>
   );
 }
 
@@ -204,8 +189,8 @@ function Status({ week, validity, onDone }) {
         </p>
         {expired ? (
           <p>
-            <strong><span aria-hidden="true">⚠️</span> Recomendación vencida.</strong> Era para la semana del {span(validity.recomendacion_inicio, validity.recomendacion_fin)}.
-            Úsala solo como referencia hasta que salga el boletín siguiente.
+            <strong>Recomendación vencida.</strong> Era para la semana del {span(validity.recomendacion_inicio, validity.recomendacion_fin)}.
+            <span className="long"> Úsala solo como referencia hasta que salga el boletín siguiente.</span>
           </p>
         ) : (
           <p className="muted small">AgroPrecio busca el boletín nuevo cada sábado en la mañana.</p>
@@ -222,26 +207,37 @@ function Status({ week, validity, onDone }) {
 
 // ---------- La respuesta, arriba: qué comprar ya y qué esperar ----------
 
-function Summary({ alerts, list, target, onPick }) {
+function Hero({ alerts, list, target, onPick }) {
   const mine = list.items.length > 0;
   const source = mine ? list.items : alerts;
   return (
-    <section className="summary" aria-label="Resumen de la semana">
-      <div className="summary-head">
-        <h2>{mine ? "Tu lista de un vistazo" : "La plaza de un vistazo"}</h2>
-        <p className="muted small">
-          Recomendación para la semana del {span(target.start, target.end)}{target.expired ? " (ya pasó)" : ""}
-        </p>
+    <section className="hero" aria-label="Resumen de la semana">
+      <div className="hero-panel">
+        <div className="hero-copy">
+          <p className="kicker">Central Cavasa · Cali</p>
+          <h1>Qué comprar <span className="outline">esta semana</span></h1>
+          <p className="hero-sub">
+            {mine ? "Tu lista" : `Los ${alerts.length} productos`} para la semana del {span(target.start, target.end)}{target.expired ? " (ya pasó)" : ""}
+          </p>
+        </div>
+        {mine && (
+          <div className="tab">
+            <span>Tu mercado</span>
+            <strong>{pesos(list.totales.costo_recomendado)}</strong>
+            <span>siguiendo la recomendación</span>
+          </div>
+        )}
       </div>
       <div className="summary-grid">
         {ORDER.map((k) => {
           const items = source.filter((a) => a.prediccion === k);
           return (
             <div key={k} className={"sum " + k}>
-              <p className="sum-title">
-                <span className="sum-count">{items.length}</span>
-                <span><span aria-hidden="true">{ACTION[k].icon}</span> {ACTION[k].text}</span>
-              </p>
+              <span className="sum-count">{items.length}</span>
+              <div className="sum-head">
+                <p className="sum-title">{ACTION[k].text}</p>
+                <p className="sum-why">{ACTION[k].why}</p>
+              </div>
               <p className="sum-names">
                 {items.length === 0 ? <span className="muted">Ninguno esta semana</span> : items.map((a, i) => (
                   <span key={a.producto}>
@@ -254,11 +250,6 @@ function Summary({ alerts, list, target, onPick }) {
           );
         })}
       </div>
-      {mine && (
-        <p className="summary-total">
-          Tu mercado siguiendo la recomendación: <strong>{pesos(list.totales.costo_recomendado)}</strong>
-        </p>
-      )}
     </section>
   );
 }
@@ -344,11 +335,11 @@ function ShoppingList({ list, setList, byProduct, week, onPick }) {
             return (
               <li key={item.producto} className="item">
                 <button className="item-name" onClick={() => onPick(item.producto)} title="Ver cómo ha cambiado el precio">
-                  <span className="icon" aria-hidden="true">{ICONS[item.producto]}</span>
+                  <Photo name={item.producto} className="thumb" />
                   <span>{item.producto}</span>
                   <span className="more" aria-hidden="true">›</span>
                 </button>
-                <span className={"item-action " + action.className}><span aria-hidden="true">{action.icon}</span> {action.text}</span>
+                <span className={"item-action " + action.className}>{action.text}</span>
                 <dl className="item-prices">
                   <div><dt>Último ({lastDay})</dt><dd>{pesos(a.precio)}/kg</dd></div>
                   <div><dt>Próxima semana</dt><dd>{pesos(a.precio_min_esperado)} – {pesos(a.precio_max_esperado)}</dd></div>
@@ -380,7 +371,7 @@ function ShoppingList({ list, setList, byProduct, week, onPick }) {
                 <li key={p}>
                   {/* onMouseDown evita que el buscador pierda el foco antes del clic */}
                   <button onMouseDown={(e) => e.preventDefault()} onClick={() => add(p)}>
-                    <span aria-hidden="true">{ICONS[p]}</span> {p} <span className="plus" aria-hidden="true">+ Agregar</span>
+                    <Photo name={p} className="thumb small" /> {p} <span className="plus" aria-hidden="true">+ Agregar</span>
                   </button>
                 </li>
               ))}
@@ -433,8 +424,7 @@ function Totals({ list, week, target }) {
   ].join("\n");
   return (
     <div className="card totals">
-      <div className="cover" role="img" aria-label="Puesto de verduras en una plaza de mercado" />
-      <h2>Tu mercado de la semana</h2>
+            <h2>Tu mercado de la semana</h2>
       <div className="total main">
         <span>Siguiendo la recomendación</span>
         <strong>{pesos(totals.costo_recomendado)}</strong>
@@ -469,7 +459,7 @@ function Bulletin({ bulletin, alerts, onPick }) {
         if (!items.length) return null;
         return (
           <div key={k} className="group">
-            <h3><span aria-hidden="true">{ACTION[k].icon}</span> {ACTION[k].text} <span className="muted">· {ACTION[k].why}</span></h3>
+            <h3>{ACTION[k].text} <span className="muted">· {ACTION[k].why}</span></h3>
             <p>
               {items.map((a, i) => (
                 <span key={a.producto}>
@@ -534,7 +524,7 @@ function Feedback({ week, restaurant }) {
   );
 }
 
-// ---------- Pizarra con los 20 productos ----------
+// ---------- Todos los precios, como un volante de ofertas ----------
 
 function Board({ alerts, week, onPick }) {
   const [filter, setFilter] = useState(null);
@@ -542,27 +532,29 @@ function Board({ alerts, week, onPick }) {
   const shown = filter ? alerts.filter((a) => a.prediccion === filter) : alerts;
   const count = (k) => alerts.filter((a) => a.prediccion === k).length;
   return (
-    <section className="board" aria-label="Pizarra de precios">
-      <h2>Pizarra de Cavasa · precios al {day(addDays(week, 6))}</h2>
-      <div className="filters" role="group" aria-label="Filtrar por recomendación">
-        <button className="filter" aria-pressed={filter === null} onClick={() => setFilter(null)}>Todos ({alerts.length})</button>
-        {ORDER.map((k) => (
-          <button key={k} className="filter" aria-pressed={filter === k} onClick={() => setFilter(filter === k ? null : k)}>
-            <span aria-hidden="true">{ACTION[k].icon}</span> {ACTION[k].text} ({count(k)})
-          </button>
-        ))}
+    <section className="board" aria-label="Todos los precios de Cavasa">
+      <div className="board-head">
+        <div>
+          <p className="kicker">Precios al {day(addDays(week, 6))}</p>
+          <h2>Todos los precios de Cavasa</h2>
+        </div>
+        <div className="filters" role="group" aria-label="Filtrar por recomendación">
+          <button className="filter" aria-pressed={filter === null} onClick={() => setFilter(null)}>Todos ({alerts.length})</button>
+          {ORDER.map((k) => (
+            <button key={k} className="filter" aria-pressed={filter === k} onClick={() => setFilter(filter === k ? null : k)}>
+              {ACTION[k].text} ({count(k)})
+            </button>
+          ))}
+        </div>
       </div>
       <div className={"board-grid" + (all || filter ? " all" : "")}>
         {shown.map((a) => (
-          <button key={a.producto} className="slot" onClick={() => onPick(a.producto)}>
-            <span className="slot-name"><span aria-hidden="true">{ICONS[a.producto]}</span> {a.producto}</span>
+          <button key={a.producto} className="product" onClick={() => onPick(a.producto)}>
+            <span className={"tag " + ACTION[a.prediccion].className}>{ACTION[a.prediccion].text}</span>
+            <Photo name={a.producto} />
+            <span className="product-name">{a.producto}</span>
             <span className="price">{pesos(a.precio)}<small>/kg</small></span>
-            <span className="change">
-              {a.cambio_1s > 0 ? "▲ Subió" : "▼ Bajó"} {pct(a.cambio_1s)} en la semana
-            </span>
-            <span className={ACTION[a.prediccion].className}>
-              <span aria-hidden="true">{ACTION[a.prediccion].icon}</span> {ACTION[a.prediccion].text}
-            </span>
+            <span className="change">{a.cambio_1s > 0 ? "▲ Subió" : "▼ Bajó"} {pct(a.cambio_1s)} en la semana</span>
           </button>
         ))}
       </div>
@@ -611,10 +603,10 @@ function ProductDetail({ alert: a, onClose }) {
   return (
     <div className="detail">
       <div className="detail-head">
-        <h2 id="detail-title"><span aria-hidden="true">{ICONS[a.producto]}</span> {a.producto}</h2>
+        <h2 id="detail-title"><Photo name={a.producto} className="thumb" /> {a.producto}</h2>
         <button className="close" onClick={onClose} aria-label="Cerrar">×</button>
       </div>
-      <p><span className={action.className}><span aria-hidden="true">{action.icon}</span> {action.text}</span></p>
+      <p><span className={action.className}>{action.text}</span></p>
       <p className="detail-text">
         El último precio en Cavasa fue <strong>{pesos(a.precio)}/kg</strong> (semana del {day(a.semana_inicio)}):{" "}
         {a.cambio_1s > 0 ? "subió" : "bajó"} {pct(a.cambio_1s)} frente a la semana anterior.
@@ -637,9 +629,9 @@ function ProductDetail({ alert: a, onClose }) {
                 formatter={(v, name) => [Array.isArray(v) ? `${pesos(v[0])} – ${pesos(v[1])}` : pesos(v), name]}
                 contentStyle={{ background: "var(--card)", border: "1px solid var(--line)", borderRadius: 8 }}
               />
-              <Area dataKey="rango" name="Rango esperado" stroke="none" fill="var(--morado)" fillOpacity={0.35} />
+              <Area dataKey="rango" name="Rango esperado" stroke="none" fill="var(--mist)" fillOpacity={0.7} />
               <Line dataKey="nacional" name="Mediana nacional" stroke="var(--muted)" strokeDasharray="4 4" dot={false} />
-              <Line dataKey="precio" name="Cavasa" stroke="var(--turquesa)" strokeWidth={2.5} dot={false} />
+              <Line dataKey="precio" name="Cavasa" stroke="var(--forest)" strokeWidth={2.5} dot={false} />
             </ComposedChart>
           </ResponsiveContainer>
           <p className="legend small muted">

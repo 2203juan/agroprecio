@@ -9,6 +9,8 @@
 - Las versiones anteriores se siguen pudiendo evaluar.
 - Dashboard rediseñado para celular: resumen arriba, una tarjeta por producto con la recomendación visible, detalle en un panel, pizarra con filtro y deshacer al quitar.
 - Colores de semáforo para la recomendación: verde para *Compra ya* y ámbar para *Espera*. El rojo queda para errores y el cambio de la semana pasada va en gris. *Normal* ahora es *Como siempre*.
+- Estilo nuevo, de volante de frutas y verduras: fondo claro, verde y amarillo, tarjetas de producto y tipografía Bricolage Grotesque con DM Sans. Ya no hay tema oscuro.
+- Fotos reales de los 20 productos, de Wikimedia Commons, con sus créditos y licencias en `frontend/public/img/productos/CREDITOS.md`.
 - Botones para enviar la lista y el boletín por WhatsApp, boletín en tres listas y buscador para agregar productos.
 - El precio se muestra con su fecha en vez de "hoy".
 - nginx ya no deja en caché la página, para que no quede la versión vieja tras un despliegue.

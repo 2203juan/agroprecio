@@ -54,12 +54,14 @@ El dashboard (http://localhost:8080) está pensado para el dueño del restaurant
 2. **Mi lista de mercado.** Anota lo que compra cada semana y cuántos kilos. La lista queda guardada en la base (tabla `listas`). Cada producto muestra qué hacer (*Compra ya*, *Espera* o *Como siempre*), el último precio con su fecha, el rango esperado para la próxima semana y cuántas veces acertó el modelo en las últimas 8 semanas. Para agregar un producto lo busca por nombre, y si quita uno por error puede deshacerlo.
 3. **Tu mercado de la semana.** Cuánto le cuesta la lista si compra todo ya, si espera todo una semana y si sigue la recomendación. Puede enviar su lista por WhatsApp.
 4. **Buscar boletín nuevo.** Cuando el DANE publica un boletín, el enlace lo descarga y corre todo el pipeline, mostrando el progreso. Además, la API lo hace sola cada sábado a las 8 a.m. (`update` en `config/config.yaml`).
-5. **Pizarra de Cavasa.** Los 20 productos con su precio, el cambio de la última semana y la recomendación. Se puede filtrar por recomendación.
+5. **Todos los precios de Cavasa.** Una tarjeta por cada uno de los 20 productos, con su precio, el cambio de la última semana y la recomendación. Se puede filtrar por recomendación.
 6. **Detalle por producto.** Al tocar un producto se abre un panel con los últimos 6 meses en Cavasa frente a la mediana nacional y el rango esperado para la próxima semana.
 7. **Boletín de la semana.** Los 20 productos en tres listas cortas, y el texto redactado por Claude o con la plantilla, listo para enviar por WhatsApp o copiar.
 8. **¿Te sirvió esta semana?** La respuesta queda guardada y se ve en Grafana.
 
 Si la semana recomendada ya pasó porque el DANE va atrasado, el dashboard lo avisa.
+
+Las fotos de los productos vienen de Wikimedia Commons; los autores y licencias están en [CREDITOS.md](frontend/public/img/productos/CREDITOS.md).
 
 ## Cómo correrlo
 
