@@ -96,4 +96,4 @@ jobs:
       # la imagen nueva y reinicia el contenedor
       - name: Avisar a Azure que hay imagen nueva
         if: env.AZURE_WEBHOOK != ''
-        run: curl -fsS -X POST "$AZURE_WEBHOOK" -H "Content-Length: 0"
+        run: curl -fsS -X POST -d "" "$AZURE_WEBHOOK"
