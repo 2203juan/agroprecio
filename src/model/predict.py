@@ -3,7 +3,7 @@ from datetime import datetime
 
 import pandas as pd
 
-from src.transform.gold_transformations import FEATURES
+from src.transform.gold_transformations import BASE_FEATURES
 
 ACTIONS = {
     "sube": "Compra esta semana",
@@ -13,8 +13,9 @@ ACTIONS = {
 
 
 def predict_latest(gold, model, entry):
-    latest = gold.dropna(subset=FEATURES).sort_values("semana_inicio").groupby("producto").tail(1)
-    X = latest[["producto"] + FEATURES]
+    latest = gold.dropna(subset=BASE_FEATURES).sort_values("semana_inicio").groupby("producto").tail(1)
+    # Cada versión guarda las variables con las que se entrenó
+    X = latest[["producto"] + entry["features"]]
     proba = model.predict_proba(X)
 
     out = latest[["semana_inicio", "producto", "grupo", "precio", "cambio_1s", "precio_nacional"]].copy()
@@ -35,6 +36,17 @@ def add_to_log(log, new):
     both = pd.concat([log, new[keep]], ignore_index=True) if not log.empty else new[keep]
     both["semana_inicio"] = pd.to_datetime(both["semana_inicio"])
     return both.drop_duplicates(["semana_inicio", "producto"], keep="last")
+
+
+def add_backtest(log, backtest):
+    """Agrega el backtest sin pisar las predicciones reales (las que tienen confianza),
+    que se hicieron antes de conocer el resultado."""
+    if not log.empty:
+        real = log[log["confianza"].notna()]
+        keys = set(zip(pd.to_datetime(real["semana_inicio"]), real["producto"]))
+        repeated = [(w, p) in keys for w, p in zip(pd.to_datetime(backtest["semana_inicio"]), backtest["producto"])]
+        backtest = backtest[[not r for r in repeated]]
+    return add_to_log(log, backtest)
 
 
 def expected_range(gold, alerts):

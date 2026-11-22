@@ -30,24 +30,31 @@ Si un restaurante gasta $3.000.000 al mes en insumos frescos y AgroPrecio le ayu
 - Va en la línea de la Política de Explotación de Datos del país (CONPES 3920): convertir datos públicos en decisiones.
 - Es un MVP replicable: cambiar el mercado (`market` en `config/config.yaml`) lleva el producto a otra ciudad sin tocar código.
 
+## Vigencia de los datos
+
+El DANE publica los viernes, pero a veces con rezago: el 22 de noviembre de 2026 el último boletín disponible era el del 31 de octubre al 6 de noviembre. Cuando la semana recomendada ya pasó, el dashboard lo avisa y Prometheus dispara una alerta.
+
 ## OKR del MVP
 
 **Objetivo:** demostrar que los datos del SIPSA sirven para dar una recomendación de compra útil y confiable.
 
 | Resultado clave | Meta | Estado en la Beta |
 |---|---|---|
-| KR1: el modelo le gana al baseline de persistencia en F1 macro | > baseline | 0,45 contra 0,40 ✅ |
-| KR2: ahorro simulado en el periodo de prueba | ≥ 1 % | 0,4 % ⚠️ |
-| KR3: el pipeline corre solo cada semana, sin intervención | 4 semanas seguidas | Workflow programado listo, falta acumular corridas |
+| KR1: el modelo le gana al baseline de persistencia en F1 macro | > baseline | 0,47 contra 0,40 ✅ |
+| KR2: ahorro simulado en el periodo de prueba | ≥ 1 % | 1,0 %, en el límite: el intervalo va de 0,4 % a 1,7 % ⚠️ |
+| KR3: el pipeline corre solo cada semana, sin intervención | 4 semanas seguidas | Programado en GitHub Actions y Airflow, falta acumular corridas |
 | KR4: reglas de calidad de datos que pasan | 100 % | 11 de 11 ✅ |
-| KR5: restaurantes que prueban el boletín y dicen que lo usarían | 5 | Pendiente de validación en campo |
+| KR5: restaurantes que prueban el boletín y dicen que lo usarían | 5 | 0 de 5. Plan en [07_validacion.md](07_validacion.md); la respuesta se guarda desde el dashboard |
 
 ## KPIs
 
 | KPI | Tipo | Cómo se mide | Dónde |
 |---|---|---|---|
 | F1 macro y accuracy contra baseline | Modelo | Corte temporal, últimas 20 semanas | `models/registry.json` |
-| Acierto de las últimas 8 semanas en producción | Modelo | Predicción contra resultado real | Tabla `monitoreo` |
+| Acierto de las últimas 8 semanas (incluye backtest) | Modelo | Predicción contra resultado real | Tabla `monitoreo` |
+| Acierto real: solo predicciones hechas antes del resultado | Modelo | Igual, sin el backtest. Todavía no hay ninguna con resultado | Tabla `monitoreo`, columna `accuracy_real` |
+| Restaurantes a los que les sirvió | Negocio | Respuesta a "¿te sirvió?" | Tabla `opiniones`, Grafana |
+| Días desde el último boletín | Datos | Fecha de hoy menos el fin del boletín | `GET /vigencia`, Grafana |
 | Ahorro simulado | Negocio | Compra anticipada cuando el modelo dice "sube" frente a comprar la semana siguiente | `registry.json` |
 | Reglas de calidad que pasan | Datos | 11 reglas por corrida | Tabla `calidad_datos` |
 | Productos con drift | Datos | z-score del cambio semanal > 3 | Tabla `drift` |

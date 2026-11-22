@@ -23,4 +23,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: touch .env
-      - run: docker compose build
+      - run: docker compose --profile airflow build
+      - name: El DAG de Airflow carga y tiene las siete etapas en orden
+        run: docker compose --profile airflow run --no-deps -v "$PWD/tests:/opt/airflow/tests:ro" airflow python /opt/airflow/tests/revisar_dag.py

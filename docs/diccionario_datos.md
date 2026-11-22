@@ -23,6 +23,8 @@ La semana se toma del título del índice, por ejemplo "Boletín semanal precios
 
 ## Silver: `data/silver/precios.parquet`
 
+Los textos se guardan como categorías para ocupar menos memoria.
+
 | Columna | Tipo | Descripción |
 |---|---|---|
 | `semana_inicio` | fecha | Sábado en que empieza la semana del boletín |
@@ -44,10 +46,12 @@ Llave: (`semana_inicio`, `producto`, `mercado`).
 | `producto`, `grupo`, `semana_inicio` | Llave y grupo |
 | `precio` | Precio medio en Cavasa |
 | `precio_nacional` | Mediana del precio medio en todos los mercados |
-| `cambio_1s`, `cambio_2s`, `cambio_4s`, `vs_media_4s`, `vs_nacional`, `cambio_nacional_1s`, `mes` | Variables del modelo |
+| 33 columnas numéricas | Variables del modelo, agrupadas en `OWN`, `MARKET` y `SEASON` en `src/transform/gold_transformations.py` y descritas en la [model card](model_card.md) |
 | `precio_siguiente` | Precio de la semana siguiente (vacío si esa semana no existe) |
 | `cambio_siguiente` | Cambio porcentual hacia la semana siguiente |
 | `clase` | `sube`, `baja` o `estable` |
+
+`data/gold/entrenamiento.parquet` tiene las mismas columnas y `mercado`, para Cavasa y Santa Elena. Solo se usa para entrenar.
 
 ## Otras tablas en `agroprecio.db`
 
@@ -56,14 +60,16 @@ Llave: (`semana_inicio`, `producto`, `mercado`).
 | `precios_cali` | Silver filtrado a los mercados de Cali |
 | `alertas` | Predicción y acción de la última semana por producto, con el rango de precio esperado (`precio_min_esperado`, `precio_max_esperado`: percentiles 25 y 75 del cambio histórico del producto en esa misma clase) y los aciertos del modelo con ese producto en sus últimas 8 semanas evaluadas (`aciertos`, `evaluadas`) |
 | `listas` | Lista de mercado del restaurante: `restaurante`, `producto`, `kg_semana`. La escribe la API desde el dashboard |
-| `predicciones` | Historial de predicciones con la versión del modelo |
-| `accuracy_semanal` | Acierto por semana |
+| `predicciones` | Historial de predicciones con la versión del modelo. Las del backtest no tienen `confianza` |
+| `accuracy_semanal` | Acierto por semana y cuántas de las predicciones son reales |
 | `drift` | Z-score del último cambio por producto |
-| `monitoreo` | Resumen por corrida y bandera de reentrenamiento |
+| `monitoreo` | Resumen por corrida y bandera de reentrenamiento. `accuracy_ultimas_8_semanas` incluye backtest; `predicciones_reales` y `accuracy_real` no |
+| `opiniones` | Respuesta a "¿te sirvió?": `fecha`, `semana_inicio`, `restaurante`, `util` (1 o 0) y `comentario` |
 | `calidad_datos` | Resultado de cada regla de calidad por corrida |
 | `boletines` | Texto del boletín, fuente (Claude o plantilla) y semana |
 
 ## Problemas conocidos de la fuente
+- El DANE publica con rezago: puede no haber boletín nuevo por varias semanas.
 - Faltan 3 semanas en el histórico disponible.
 - Un boletín (29 ago - 4 sep de 2026) pesa 24 MB y se omite por el límite de tamaño de la descarga.
 - Algunos productos aparecen repetidos dentro del mismo boletín; se deja la primera fila.

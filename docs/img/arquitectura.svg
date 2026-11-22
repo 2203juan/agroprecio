@@ -1,5 +1,5 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 300" font-family="Helvetica, Arial, sans-serif" font-size="13">
-  <rect width="980" height="300" rx="12" fill="#ffffff"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 980 430" font-family="Helvetica, Arial, sans-serif" font-size="13">
+  <rect width="980" height="430" rx="12" fill="#ffffff"/>
   <defs>
     <marker id="a" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
       <path d="M0,0 L10,5 L0,10 z" fill="#6b746e"/>
@@ -7,43 +7,65 @@
   </defs>
 
   <g fill="#1f2a24">
-    <rect x="20" y="110" width="120" height="70" rx="8" fill="#eef2ee" stroke="#c9d3cb"/>
-    <text x="80" y="140" text-anchor="middle" font-weight="bold">DANE · SIPSA</text>
-    <text x="80" y="160" text-anchor="middle" fill="#6b746e">Excel semanal</text>
+    <rect x="180" y="14" width="460" height="34" rx="8" fill="#efe7f6" stroke="#b9a3d1"/>
+    <text x="410" y="36" text-anchor="middle">Airflow (opcional) · GitHub Actions · botón del dashboard</text>
 
-    <rect x="180" y="40" width="460" height="210" rx="10" fill="none" stroke="#c9d3cb" stroke-dasharray="5 4"/>
-    <text x="410" y="62" text-anchor="middle" fill="#6b746e">pipeline · main.py (Docker / GitHub Actions)</text>
+    <rect x="20" y="140" width="120" height="70" rx="8" fill="#eef2ee" stroke="#c9d3cb"/>
+    <text x="80" y="170" text-anchor="middle" font-weight="bold">DANE · SIPSA</text>
+    <text x="80" y="190" text-anchor="middle" fill="#6b746e">Excel semanal</text>
 
-    <rect x="200" y="110" width="120" height="70" rx="8" fill="#f3e6d6" stroke="#d9b98f"/>
-    <text x="260" y="140" text-anchor="middle" font-weight="bold">Bronze</text>
-    <text x="260" y="160" text-anchor="middle" fill="#6b746e">xlsx + manifest</text>
+    <rect x="180" y="74" width="460" height="216" rx="10" fill="none" stroke="#c9d3cb" stroke-dasharray="5 4"/>
+    <text x="410" y="96" text-anchor="middle" fill="#6b746e">pipeline · main.py, una etapa por tarea</text>
 
-    <rect x="350" y="110" width="120" height="70" rx="8" fill="#e6e9ec" stroke="#b9c0c7"/>
-    <text x="410" y="140" text-anchor="middle" font-weight="bold">Silver</text>
-    <text x="410" y="160" text-anchor="middle" fill="#6b746e">precios.parquet</text>
+    <rect x="200" y="140" width="120" height="70" rx="8" fill="#f3e6d6" stroke="#d9b98f"/>
+    <text x="260" y="170" text-anchor="middle" font-weight="bold">Bronze</text>
+    <text x="260" y="190" text-anchor="middle" fill="#6b746e">xlsx + manifest</text>
 
-    <rect x="500" y="110" width="120" height="70" rx="8" fill="#f6edc8" stroke="#d8c271"/>
-    <text x="560" y="140" text-anchor="middle" font-weight="bold">Gold</text>
-    <text x="560" y="160" text-anchor="middle" fill="#6b746e">features + SQLite</text>
+    <rect x="350" y="140" width="120" height="70" rx="8" fill="#e6e9ec" stroke="#b9c0c7"/>
+    <text x="410" y="170" text-anchor="middle" font-weight="bold">Silver</text>
+    <text x="410" y="190" text-anchor="middle" fill="#6b746e">precios.parquet</text>
 
-    <rect x="350" y="200" width="270" height="36" rx="8" fill="#e3f1e8" stroke="#9fcbb0"/>
-    <text x="485" y="223" text-anchor="middle">calidad · modelo · monitoreo · boletín (Claude)</text>
+    <rect x="500" y="140" width="120" height="70" rx="8" fill="#f6edc8" stroke="#d8c271"/>
+    <text x="560" y="170" text-anchor="middle" font-weight="bold">Gold</text>
+    <text x="560" y="190" text-anchor="middle" fill="#6b746e">features + SQLite</text>
 
-    <rect x="680" y="110" width="120" height="70" rx="8" fill="#e3ecf7" stroke="#9db6d8"/>
-    <text x="740" y="140" text-anchor="middle" font-weight="bold">API</text>
-    <text x="740" y="160" text-anchor="middle" fill="#6b746e">FastAPI :8000</text>
+    <rect x="240" y="238" width="380" height="36" rx="8" fill="#e3f1e8" stroke="#9fcbb0"/>
+    <text x="430" y="261" text-anchor="middle">calidad · modelo · predicción y monitoreo · boletín (Claude)</text>
 
-    <rect x="840" y="110" width="120" height="70" rx="8" fill="#e3ecf7" stroke="#9db6d8"/>
-    <text x="900" y="140" text-anchor="middle" font-weight="bold">Dashboard</text>
-    <text x="900" y="160" text-anchor="middle" fill="#6b746e">React :8080</text>
+    <rect x="690" y="140" width="110" height="70" rx="8" fill="#e3ecf7" stroke="#9db6d8"/>
+    <text x="745" y="170" text-anchor="middle" font-weight="bold">API</text>
+    <text x="745" y="190" text-anchor="middle" fill="#6b746e">FastAPI</text>
+
+    <rect x="850" y="140" width="110" height="70" rx="8" fill="#e3ecf7" stroke="#9db6d8"/>
+    <text x="905" y="170" text-anchor="middle" font-weight="bold">Dashboard</text>
+    <text x="905" y="190" text-anchor="middle" fill="#6b746e">React</text>
+
+    <rect x="340" y="340" width="180" height="60" rx="8" fill="#e8eef8" stroke="#9db6d8"/>
+    <text x="430" y="366" text-anchor="middle" font-weight="bold">MLflow</text>
+    <text x="430" y="386" text-anchor="middle" fill="#6b746e">modelos y trazas</text>
+
+    <rect x="680" y="340" width="130" height="60" rx="8" fill="#fbe9e2" stroke="#e0a48c"/>
+    <text x="745" y="366" text-anchor="middle" font-weight="bold">Prometheus</text>
+    <text x="745" y="386" text-anchor="middle" fill="#6b746e">métricas y alertas</text>
+
+    <rect x="850" y="340" width="110" height="60" rx="8" fill="#fdf1dc" stroke="#e0bd7c"/>
+    <text x="905" y="366" text-anchor="middle" font-weight="bold">Grafana</text>
+    <text x="905" y="386" text-anchor="middle" fill="#6b746e">tableros</text>
+
+    <text x="877" y="226" text-anchor="middle" fill="#6b746e">¿te sirvió?</text>
   </g>
 
   <g stroke="#6b746e" stroke-width="1.5" fill="none" marker-end="url(#a)">
-    <line x1="140" y1="145" x2="198" y2="145"/>
-    <line x1="320" y1="145" x2="348" y2="145"/>
-    <line x1="470" y1="145" x2="498" y2="145"/>
-    <line x1="560" y1="180" x2="560" y2="198"/>
-    <line x1="620" y1="145" x2="678" y2="145"/>
-    <line x1="800" y1="145" x2="838" y2="145"/>
+    <line x1="410" y1="48" x2="410" y2="72"/>
+    <line x1="140" y1="175" x2="198" y2="175"/>
+    <line x1="320" y1="175" x2="348" y2="175"/>
+    <line x1="470" y1="175" x2="498" y2="175"/>
+    <line x1="560" y1="210" x2="560" y2="236"/>
+    <line x1="620" y1="175" x2="688" y2="175"/>
+    <line x1="800" y1="168" x2="848" y2="168"/>
+    <line x1="850" y1="188" x2="802" y2="188"/>
+    <line x1="430" y1="274" x2="430" y2="338"/>
+    <line x1="745" y1="338" x2="745" y2="212"/>
+    <line x1="850" y1="370" x2="812" y2="370"/>
   </g>
 </svg>

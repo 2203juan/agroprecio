@@ -35,9 +35,9 @@
       "Gratis en la versión básica y sin instalar nada."
     ],
     "relationships": [
-      "Automática: el boletín llega solo cada viernes.",
-      "Transparente: cada alerta dice qué tan segura es la predicción.",
-      "Retroalimentación: el usuario puede responder si le sirvió o no, y eso entra al monitoreo."
+      "Automática: el pipeline busca el boletín nuevo miércoles y sábado.",
+      "Transparente: cada producto muestra cuántas veces acertó el modelo, y el dashboard avisa si la recomendación venció.",
+      "Retroalimentación: el usuario responde en el dashboard si le sirvió o no, y eso se ve en el monitoreo."
     ],
     "channels": [
       "Boletín semanal por WhatsApp (canal principal en la siguiente versión).",

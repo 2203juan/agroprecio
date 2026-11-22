@@ -1,9 +1,11 @@
 name: Pipeline semanal
 
-# El DANE publica el boletín los viernes; corremos el sábado en la mañana (hora Colombia)
+# El DANE publica el boletín los viernes, pero a veces con rezago: corremos sábado y miércoles
+# a las 8 a.m. (hora Colombia). Además, GitHub borra las cachés que pasan 7 días sin uso; con
+# una sola corrida por semana se podría perder el historial de predicciones.
 on:
   schedule:
-    - cron: "0 13 * * 6"
+    - cron: "0 13 * * 3,6"
   workflow_dispatch:
 
 jobs:

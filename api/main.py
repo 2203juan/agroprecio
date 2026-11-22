@@ -5,23 +5,30 @@ from pathlib import Path
 
 import yaml
 import pandas as pd
-import joblib
 from fastapi import FastAPI, HTTPException
 from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel
+from prometheus_client import CONTENT_TYPE_LATEST, REGISTRY, generate_latest
+from pydantic import BaseModel, Field
+from starlette.responses import Response
 
 from api import actualizar
+from api.prometheus import ProductCollector, track_requests
 from src.lista import cost_list, normalize_items
 from src.model.metrics import classification_metrics, evaluate_version
+from src.model.train import evaluated_model
 from src.load.load_database import query, read_table, save_table
+from src.opiniones import MAX_COMMENT, new_opinion, summarize
+from src.vigencia import freshness
 
 CONFIG = yaml.safe_load(open(os.getenv("AGRO_CONFIG", "config/config.yaml"), encoding="utf-8"))
 DB = CONFIG["paths"]["database"]
 
-app = FastAPI(title="AgroPrecio API", version="0.4.0")
+app = FastAPI(title="AgroPrecio API", version="0.6.0")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["GET", "POST", "PUT"], allow_headers=["*"])
-
+app.middleware("http")(track_requests)
+COLLECTOR = ProductCollector(CONFIG)
+REGISTRY.register(COLLECTOR)
 
 
 def last_run():
@@ -64,6 +71,14 @@ def history(producto: str, semanas: int = 52):
     return records(df.iloc[::-1])
 
 
+@app.get("/vigencia")
+def validity():
+    df = read_table("alertas", DB)
+    if df.empty:
+        raise HTTPException(404, "Todavía no hay alertas")
+    return freshness(df["semana_inicio"].iloc[0])
+
+
 @app.get("/boletin")
 def bulletin():
     df = query("SELECT * FROM boletines ORDER BY fecha DESC LIMIT 1", DB)
@@ -84,6 +99,7 @@ def monitoring():
         "estado": records(query("SELECT * FROM monitoreo ORDER BY fecha DESC LIMIT 1", DB)),
         "accuracy_semanal": records(query("SELECT * FROM accuracy_semanal", DB)),
         "drift": records(query("SELECT * FROM drift", DB)),
+        "opiniones": summarize(read_table("opiniones", DB)),
         "calidad": records(query(
             "SELECT * FROM calidad_datos WHERE fecha = (SELECT MAX(fecha) FROM calidad_datos)", DB)),
     }
@@ -119,6 +135,29 @@ def put_list(lista: Lista):
     items = normalize_items([i.model_dump() for i in lista.items], CONFIG["products"])
     save_table(items.assign(restaurante=lista.restaurante.strip() or "Mi restaurante"), "listas", DB)
     return get_list()
+
+
+# ---------- ¿Te sirvió? ----------
+
+class Opinion(BaseModel):
+    util: bool
+    restaurante: str = Field(default="", max_length=80)
+    comentario: str = Field(default="", max_length=MAX_COMMENT)
+
+
+@app.get("/opiniones")
+def get_opinions():
+    return summarize(read_table("opiniones", DB))
+
+
+@app.post("/opiniones", status_code=201)
+def post_opinion(opinion: Opinion):
+    alerts = read_table("alertas", DB)
+    if alerts.empty:
+        raise HTTPException(404, "Todavía no hay una recomendación para calificar")
+    row = new_opinion(opinion.util, alerts["semana_inicio"].iloc[0], opinion.restaurante, opinion.comentario)
+    save_table(row, "opiniones", DB, mode="append")
+    return get_opinions()
 
 
 # ---------- Actualizar con el boletín más reciente del DANE ----------
@@ -157,10 +196,10 @@ def metrics(formato: str = "json"):
 
     table, detail = [], {}
     for entry in registry:
-        file = Path(CONFIG["paths"]["models"]) / f"{entry['version']}.joblib"
-        if not file.exists():
+        model = evaluated_model(CONFIG["paths"]["models"], entry["version"])
+        if model is None:
             continue
-        rows, classes, cm = evaluate_version(joblib.load(file), entry, gold, CONFIG)
+        rows, classes, cm = evaluate_version(model, entry, gold, CONFIG)
         table += rows
         detail[entry["version"]] = {"por_clase": records(classes), "matriz_confusion": cm}
 
@@ -168,6 +207,12 @@ def metrics(formato: str = "json"):
     if formato == "html":
         return HTMLResponse(metrics_html(table, live))
     return {"tabla": table, "detalle_modelo": detail, "en_produccion": live}
+
+
+@app.get("/prometheus", include_in_schema=False)
+def prometheus():
+    """Métricas en el formato de Prometheus (la tabla de /metrics es para personas)."""
+    return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
 
 
 def metrics_html(table, live):

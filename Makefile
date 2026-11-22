@@ -6,11 +6,16 @@ export
 
 API_PORT ?= 8000
 WEB_PORT ?= 8080
+MLFLOW_PORT ?= 5002
+PROMETHEUS_PORT ?= 9092
+GRAFANA_PORT ?= 3002
+AIRFLOW_PORT ?= 8082
 PY := .venv/bin/python
 
 .DEFAULT_GOAL := help
-.PHONY: help install pipeline pipeline-fast retrain api web test notebook \
-        all docker docker-pipeline docker-api docker-web docker-logs docker-stop clean
+.PHONY: help install pipeline pipeline-fast retrain experiments api web test notebook \
+        all docker docker-pipeline docker-retrain docker-api docker-web docker-logs docker-stop \
+        monitoring airflow airflow-run status open clean
 
 help: ## Show this help
 	@printf "Usage: make <command>\n\n"
@@ -19,7 +24,7 @@ help: ## Show this help
 # ---------- Local ----------
 
 install: ## Create the virtual env and install Python and Node deps
-	@if command -v uv >/dev/null; then uv venv -p 3.12 .venv && uv pip install -p .venv -r requirements-dev.txt; \
+	@if command -v uv >/dev/null; then uv venv -p 3.12 --allow-existing .venv && uv pip install -p .venv -r requirements-dev.txt; \
 	else python3 -m venv .venv && $(PY) -m pip install -r requirements-dev.txt; fi
 	cd frontend && npm install
 
@@ -31,6 +36,9 @@ pipeline-fast: ## Run the pipeline without downloading (uses data/bronze)
 
 retrain: ## Run the pipeline and force a new model
 	$(PY) main.py --sin-descarga --reentrenar
+
+experiments: ## Compare model variants with walk-forward validation (~1 min)
+	$(PY) -m src.model.experiments
 
 api: ## Start the API (port API_PORT, 8000 by default)
 	$(PY) -m uvicorn api.main:app --reload --port $(API_PORT)
@@ -55,6 +63,9 @@ docker: ## Docker: everything (pipeline, API and dashboard at http://localhost:8
 docker-pipeline: ## Docker: pipeline only
 	docker compose run --rm --build pipeline
 
+docker-retrain: ## Docker: force a new model with the data already downloaded
+	docker compose run --rm --build pipeline python main.py --sin-descarga --reentrenar
+
 docker-api: ## Docker: API only (uses the existing database)
 	docker compose up --build --no-deps api
 
@@ -64,8 +75,31 @@ docker-web: ## Docker: API + dashboard, without running the pipeline
 docker-logs: ## Docker: follow the logs
 	docker compose logs -f
 
-docker-stop: ## Docker: stop everything
-	docker compose down
+docker-stop: ## Docker: stop everything (keeps MLflow, Prometheus, Grafana and Airflow data)
+	docker compose --profile airflow down
+
+# ---------- MLOps ----------
+
+monitoring: ## Start MLflow, Prometheus and Grafana
+	docker compose up -d --build mlflow prometheus grafana
+
+airflow: ## Start Airflow (optional, one container)
+	docker compose --profile airflow up -d --build mlflow airflow
+
+airflow-run: ## Trigger the Airflow DAG and print the state of each task
+	@./docker/airflow/run_dag.sh
+
+status: ## Show which services are up
+	@check() { curl -sf -o /dev/null -m 3 "$$2" && s="up  " || s="down"; printf "  %-11s %s  %s\n" "$$1" "$$s" "$$3"; }; \
+	check Dashboard  http://localhost:$(WEB_PORT)                           http://localhost:$(WEB_PORT); \
+	check API        http://localhost:$(API_PORT)/salud                     http://localhost:$(API_PORT)/docs; \
+	check MLflow     http://localhost:$(MLFLOW_PORT)/health                 http://localhost:$(MLFLOW_PORT); \
+	check Prometheus http://localhost:$(PROMETHEUS_PORT)/-/ready            http://localhost:$(PROMETHEUS_PORT)/targets; \
+	check Grafana    http://localhost:$(GRAFANA_PORT)/api/health            http://localhost:$(GRAFANA_PORT)/d/agroprecio; \
+	check Airflow    http://localhost:$(AIRFLOW_PORT)/api/v2/monitor/health http://localhost:$(AIRFLOW_PORT)
+
+open: ## Open the dashboard, MLflow and Grafana
+	@open http://localhost:$(WEB_PORT) http://localhost:$(MLFLOW_PORT) http://localhost:$(GRAFANA_PORT)/d/agroprecio
 
 # ---------- Cleanup ----------
 

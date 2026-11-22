@@ -2,6 +2,8 @@
 import pandas as pd
 
 PRICE_COLS = ["precio_min", "precio_max", "precio_medio"]
+KEY = ["semana_inicio", "producto", "mercado"]
+REPEATED = ["grupo", "producto", "mercado", "tendencia", "archivo"]
 
 
 def normalize_text(s):
@@ -31,7 +33,7 @@ def clean_prices(raw):
     df["precio_max"] = df["precio_max"].fillna(df["precio_medio"])
 
     # Algunos boletines repiten la misma fila; nos quedamos con la primera
-    df = df.drop_duplicates(subset=["semana_inicio", "producto", "mercado"], keep="first")
+    df = df.drop_duplicates(subset=KEY, keep="first")
 
     df["semana_inicio"] = pd.to_datetime(df["semana_inicio"])
     df["semana_fin"] = pd.to_datetime(df["semana_fin"])
@@ -39,4 +41,14 @@ def clean_prices(raw):
 
     cols = ["semana_inicio", "semana_fin", "anio", "grupo", "producto", "mercado",
             "precio_min", "precio_max", "precio_medio", "tendencia", "archivo"]
-    return df[cols].sort_values(["semana_inicio", "producto", "mercado"]).reset_index(drop=True)
+    return df[cols].sort_values(KEY).reset_index(drop=True)
+
+
+def clean_bulletins(bulletins):
+    """Limpia boletín por boletín y los une. Los textos se repiten miles de veces, así que
+    se unen como categorías: cada texto distinto se guarda una sola vez en memoria."""
+    frames = [clean_prices(b) for b in bulletins]
+    texts = {c: sorted(set().union(*(f[c].dropna().unique() for f in frames))) for c in REPEATED}
+    frames = [f.assign(**{c: pd.Categorical(f[c], categories=texts[c]) for c in REPEATED}) for f in frames]
+    df = pd.concat(frames, ignore_index=True)
+    return df.drop_duplicates(subset=KEY, keep="first").sort_values(KEY).reset_index(drop=True)

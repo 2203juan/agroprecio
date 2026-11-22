@@ -1,5 +1,7 @@
 # Business Model Canvas
 
+El lienzo de la decisión que apoya el modelo está en el [AI Canvas](06_ai_canvas.md).
+
 Se puede cargar directamente en [Canvas Studio](https://juankidd.github.io/canvas/) con **Importar JSON** usando [lienzos/canvas.json](lienzos/canvas.json).
 
 El orden de trabajo fue el que sugiere la herramienta: primero clientes y propuesta de valor, después canales, relación e ingresos, y al final la parte operativa.
@@ -24,9 +26,9 @@ El orden de trabajo fue el que sugiere la herramienta: primero clientes y propue
 - Proveedores de insumos que reparten el boletín a sus clientes.
 
 ## 05 · Relación con clientes
-- Automática: el boletín llega solo cada viernes.
-- Transparente: cada alerta dice qué tan segura es la predicción.
-- Retroalimentación: el usuario puede responder si le sirvió o no, y eso entra al monitoreo.
+- Automática: el pipeline busca el boletín nuevo miércoles y sábado.
+- Transparente: cada producto muestra cuántas veces acertó el modelo, y el dashboard avisa si la recomendación venció.
+- Retroalimentación: el usuario responde en el dashboard si le sirvió o no, y eso se ve en el monitoreo.
 
 ## 09 · Fuentes de ingresos
 - Freemium: boletín básico gratis y plan pago con más productos, alertas a mitad de semana y lista de compras sugerida.
@@ -64,5 +66,5 @@ El orden de trabajo fue el que sugiere la herramienta: primero clientes y propue
 | Dimensión | Evaluación |
 |---|---|
 | Técnica | Alta. Todo corre en un portátil o en un contenedor; el pipeline completo tarda menos de un minuto. |
-| Datos | Alta en disponibilidad (fuente oficial, semanal y gratuita) y media en estabilidad, porque el DANE puede cambiar el formato del Excel. Las reglas de calidad lo detectan. |
-| Negocio | Media. El ahorro simulado todavía es bajo (0,4 %); hay que validar con restaurantes reales si el valor percibido justifica pagar. |
+| Datos | Alta en disponibilidad (fuente oficial, semanal y gratuita) y media en estabilidad, porque el DANE puede cambiar el formato del Excel o publicar con rezago. Las reglas de calidad detectan lo primero y el dashboard avisa lo segundo. |
+| Negocio | Media. El ahorro simulado es de 1,0 % y en el límite de la meta; hay que validar con restaurantes reales si el valor percibido justifica pagar. |

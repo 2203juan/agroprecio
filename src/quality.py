@@ -4,6 +4,9 @@ from datetime import datetime
 
 import pandas as pd
 
+# Si falla alguna de estas, el pipeline se detiene antes de entrenar o publicar
+CRITICAL = {"sin_nulos_en_llaves", "precios_positivos"}
+
 
 def check_silver(df):
     weeks = df["semana_inicio"].drop_duplicates().sort_values()

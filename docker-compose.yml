@@ -1,21 +1,28 @@
+# Todos los puertos se cambian en .env (ver .env.example).
+x-pipeline: &pipeline
+  build: .
+  # Tope de memoria: si algo se pasa, no afecta a los demás contenedores
+  mem_limit: 1500m
+  env_file: .env
+  environment:
+    TZ: America/Bogota
+    MLFLOW_TRACKING_URI: http://mlflow:5000
+  volumes:
+    - ./data:/app/data
+    - ./models:/app/models
+    - ./logs:/app/logs
+
 services:
   pipeline:
-    build: .
+    <<: *pipeline
     command: python main.py
-    env_file: .env
-    volumes:
-      - ./data:/app/data
-      - ./models:/app/models
-      - ./logs:/app/logs
+    depends_on:
+      mlflow:
+        condition: service_healthy
 
   api:
-    build: .
+    <<: *pipeline
     command: uvicorn api.main:app --host 0.0.0.0 --port 8000
-    env_file: .env
-    volumes:
-      - ./data:/app/data
-      - ./models:/app/models
-      - ./logs:/app/logs
     ports:
       - "${API_PORT:-8000}:8000"
     depends_on:
@@ -28,3 +35,83 @@ services:
       - "${WEB_PORT:-8080}:80"
     depends_on:
       - api
+
+  mlflow:
+    build: ./docker/mlflow
+    mem_limit: 1g
+    command: >
+      mlflow server --host 0.0.0.0 --port 5000 --workers 1
+      --backend-store-uri sqlite:////mlflow/mlflow.db --artifacts-destination /mlflow/artifacts
+      --allowed-hosts mlflow:5000,localhost:${MLFLOW_PORT:-5002},127.0.0.1:${MLFLOW_PORT:-5002}
+    environment:
+      # Solo se usa para seguimiento; sin los trabajos en segundo plano gasta mucha menos memoria
+      MLFLOW_SERVER_ENABLE_JOB_EXECUTION: "false"
+    ports:
+      - "127.0.0.1:${MLFLOW_PORT:-5002}:5000"
+    volumes:
+      - mlflow_data:/mlflow
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://localhost:5000/health')"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+
+  prometheus:
+    image: prom/prometheus:v3.16.0
+    ports:
+      - "127.0.0.1:${PROMETHEUS_PORT:-9092}:9090"
+    volumes:
+      - ./docker/prometheus:/etc/prometheus:ro
+      - prometheus_data:/prometheus
+
+  grafana:
+    image: grafana/grafana:13.3.1
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_PASSWORD:-admin}
+      # Se puede ver sin cuenta, pero solo desde este equipo
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Viewer
+    ports:
+      - "127.0.0.1:${GRAFANA_PORT:-3002}:3000"
+    volumes:
+      - ./docker/grafana/provisioning:/etc/grafana/provisioning:ro
+      - grafana_data:/var/lib/grafana
+    depends_on:
+      - prometheus
+
+  # Opcional: make airflow. Todo en un contenedor, suficiente para un solo DAG.
+  airflow:
+    profiles: [airflow]
+    mem_limit: 2g
+    build:
+      context: .
+      dockerfile: docker/airflow/Dockerfile
+    command: standalone
+    user: "${AIRFLOW_UID:-50000}:0"
+    env_file: .env
+    environment:
+      TZ: America/Bogota
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+      AIRFLOW__CORE__LOAD_EXAMPLES: "false"
+      AIRFLOW__CORE__DEFAULT_TIMEZONE: America/Bogota
+      AIRFLOW__CORE__PARALLELISM: "2"
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: sqlite:////opt/airflow/estado/airflow.db
+      # Sin usuarios: el puerto solo se abre en este equipo
+      AIRFLOW__CORE__SIMPLE_AUTH_MANAGER_ALL_ADMINS: "true"
+    ports:
+      - "127.0.0.1:${AIRFLOW_PORT:-8082}:8080"
+    volumes:
+      - ./dags:/opt/airflow/dags:ro
+      - ./main.py:/opt/agroprecio/main.py:ro
+      - ./src:/opt/agroprecio/src:ro
+      - ./config:/opt/agroprecio/config:ro
+      - ./data:/opt/agroprecio/data
+      - ./models:/opt/agroprecio/models
+      - ./logs:/opt/agroprecio/logs
+      - airflow_data:/opt/airflow/estado
+
+volumes:
+  mlflow_data:
+  prometheus_data:
+  grafana_data:
+  airflow_data:

@@ -134,6 +134,8 @@ def read_bulletin(path):
         data["grupo"] = group
         frames.append(data)
 
+    xls.close()
+
     df = pd.concat(frames, ignore_index=True)
     df["semana_inicio"] = start
     df["semana_fin"] = end
@@ -142,13 +144,16 @@ def read_bulletin(path):
 
 
 def extract_all(cfg, logger):
-    """Lee todos los Excel de bronze. Si un archivo no se puede leer, se registra y se sigue."""
+    """Lee los Excel de bronze uno por uno, para no tenerlos todos en memoria sin limpiar.
+    Si un archivo no se puede leer, se registra y se sigue."""
     files = sorted(Path(cfg["paths"]["bronze"]).glob("sipsa_*.xlsx"))
-    frames = []
+    read = 0
     for f in files:
         try:
-            frames.append(read_bulletin(f))
+            bulletin = read_bulletin(f)
         except Exception as e:
             logger.warning("No se pudo leer %s: %s", f.name, e)
-    logger.info("Boletines leídos: %s de %s", len(frames), len(files))
-    return pd.concat(frames, ignore_index=True)
+            continue
+        read += 1
+        yield bulletin
+    logger.info("Boletines leídos: %s de %s", read, len(files))

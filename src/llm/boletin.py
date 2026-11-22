@@ -10,6 +10,8 @@ import time
 from datetime import datetime
 from pathlib import Path
 
+from src.model.tracking import llm_span
+
 SYSTEM = """Eres el asistente de compras de AgroPrecio. Escribes para dueños de
 restaurantes pequeños de Cali que compran en la central mayorista Cavasa.
 Reglas:
@@ -57,6 +59,15 @@ def numbers_are_grounded(text, alerts):
 
 
 def generate_bulletin(alerts, cfg, logger):
+    with llm_span("boletin_semanal", logger) as span:
+        bulletin, record = _generate(alerts, cfg, logger)
+        span.set_inputs({"system": SYSTEM, "prompt": record["prompt"]})
+        span.set_outputs({"texto": bulletin["texto"], "fuente": bulletin["fuente"]})
+        span.set_attributes({k: v for k, v in record.items() if k not in ("prompt", "respuesta")})
+        return bulletin
+
+
+def _generate(alerts, cfg, logger):
     prompt = build_prompt(alerts)
     record = {"fecha": datetime.now().isoformat(timespec="seconds"),
               "modelo": cfg["llm"]["model"], "prompt": prompt}
@@ -100,4 +111,4 @@ def generate_bulletin(alerts, cfg, logger):
         f.write(json.dumps(record, ensure_ascii=False) + "\n")
 
     return {"fecha": record["fecha"], "semana_inicio": str(alerts["semana_inicio"].iloc[0])[:10],
-            "fuente": source, "texto": text}
+            "fuente": source, "texto": text}, record

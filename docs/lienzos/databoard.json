@@ -34,17 +34,19 @@
       "Convertirlo en una recomendación de compra redactada por Claude"
     ],
     "needed": [
-      "Abastecimiento semanal (hoja 1.10 del mismo boletín)",
+      "Abastecimiento semanal (hoja 1.10, solo en boletines recientes)",
       "Clima del IDEAM en zonas productoras",
       "Calendario de festivos y temporadas",
-      "Retroalimentación voluntaria de los usuarios"
+      "Retroalimentación voluntaria de los usuarios (ya disponible en el dashboard)"
     ],
     "prototype": [
       "MVP: pipeline medallón Excel → Parquet → SQLite y baseline de persistencia",
       "Alpha: Random Forest versionado, API FastAPI y dashboard React",
-      "Beta: boletín con Claude, monitoreo de acierto y drift, CI/CD y Docker"
+      "Beta: boletín con Claude, monitoreo de acierto y drift, CI/CD y Docker",
+      "v0.5: MLflow, Prometheus, Grafana y Airflow; opinión del usuario y aviso de vigencia"
     ],
     "risks": [
+      "El DANE publica con rezago → aviso de recomendación vencida y alerta",
       "Cambio de formato del Excel → reglas de calidad que detienen el pipeline",
       "Errores del modelo → mostrar la confianza y aclarar que es una estimación",
       "El LLM inventa cifras → validación automática y plantilla de respaldo",
@@ -63,15 +65,15 @@
       "Proveedores de Cavasa que reenvían el boletín"
     ],
     "metrics": [
-      "F1 del modelo contra el baseline: 0,45 contra 0,40",
-      "Ahorro simulado: 0,4 % (meta 1 %)",
+      "F1 del modelo contra el baseline: 0,47 contra 0,40",
+      "Ahorro simulado: 1,0 % (meta 1 %; intervalo de 0,4 % a 1,7 %)",
       "Acierto de las últimas 8 semanas, con reentrenamiento si baja de 0,40",
       "Experimento A/B de 4 semanas con y sin boletín"
     ],
     "learning": [
       "Se pudo automatizar la lectura de un Excel difícil",
-      "Ganarle al baseline por mucho exige más datos, no un modelo más complejo",
-      "Usar también la predicción 'baja' para subir el ahorro",
+      "Ayudaron más los datos y las variables que afinar parámetros",
+      "Otras reglas de compra no superan con claridad a la actual",
       "Falta validar con usuarios reales"
     ]
   }

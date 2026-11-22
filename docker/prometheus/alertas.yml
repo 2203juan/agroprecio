@@ -1,0 +1,24 @@
+groups:
+  - name: agroprecio
+    rules:
+      - alert: ApiCaida
+        expr: up{job="agroprecio-api"} == 0
+        for: 2m
+        annotations:
+          summary: La API no responde
+      - alert: ReglasDeCalidadFallan
+        expr: agroprecio_reglas_calidad{estado="falla"} > 0
+        annotations:
+          summary: Fallan reglas de calidad en la última corrida
+      - alert: ModeloPideReentrenar
+        expr: agroprecio_requiere_reentrenar == 1
+        annotations:
+          summary: El acierto bajó del mínimo o hay drift; se reentrena cuando lleguen semanas nuevas
+      - alert: RecomendacionVencida
+        expr: agroprecio_recomendacion_vencida == 1
+        annotations:
+          summary: La semana de la recomendación ya pasó y no hay boletín nuevo
+      - alert: PipelineSinCorrer
+        expr: time() - agroprecio_ultima_corrida_timestamp > 8 * 24 * 3600
+        annotations:
+          summary: El pipeline lleva más de 8 días sin correr

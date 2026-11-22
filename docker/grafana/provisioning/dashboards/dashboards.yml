@@ -1,0 +1,6 @@
+apiVersion: 1
+providers:
+  - name: AgroPrecio
+    type: file
+    options:
+      path: /etc/grafana/provisioning/dashboards

@@ -16,8 +16,10 @@ def score_predictions(log, gold):
 
 
 def weekly_accuracy(scored):
+    """reales: cuántas se hicieron antes de conocer el resultado (las demás son backtest)."""
     return (scored.groupby("semana_inicio", as_index=False)
-            .agg(predicciones=("acierto", "size"), accuracy=("acierto", "mean"))
+            .agg(predicciones=("acierto", "size"), accuracy=("acierto", "mean"),
+                 reales=("confianza", "count"))
             .sort_values("semana_inicio"))
 
 
@@ -38,17 +40,27 @@ def data_drift(gold, zscore):
     return pd.DataFrame(rows)
 
 
+def real_accuracy(scored):
+    """Acierto solo de las predicciones hechas antes de conocer el resultado.
+    Las del backtest se guardan sin confianza y no cuentan."""
+    real = scored[scored["confianza"].notna()]
+    return len(real), (round(float(real["acierto"].mean()), 4) if len(real) else None)
+
+
 def summary(scored, drift, cfg, entry):
     recent = scored.sort_values("semana_inicio").groupby("producto").tail(8)
     acc = float(recent["acierto"].mean()) if len(recent) else None
     drift_share = float(drift["drift"].mean()) if len(drift) else 0.0
     needs_retrain = (acc is not None and acc < cfg["monitoring"]["min_accuracy"]) or drift_share > 0.3
+    n_real, acc_real = real_accuracy(scored)
     return pd.DataFrame([{
         "fecha": datetime.now().isoformat(timespec="seconds"),
         "modelo_version": entry["version"],
         "accuracy_ultimas_8_semanas": None if acc is None else round(acc, 4),
         "productos_con_drift": int(drift["drift"].sum()),
         "requiere_reentrenar": bool(needs_retrain),
+        "predicciones_reales": n_real,
+        "accuracy_real": acc_real,
     }])
 
 

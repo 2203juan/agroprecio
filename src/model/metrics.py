@@ -6,7 +6,7 @@ from sklearn.metrics import (
     roc_auc_score,
 )
 
-from src.transform.gold_transformations import FEATURES, classify
+from src.transform.gold_transformations import BASE_FEATURES, classify
 
 CLASSES = ["baja", "estable", "sube"]  # mismo orden que model.classes_
 
@@ -45,7 +45,7 @@ def confusion(y_true, y_pred):
 
 def holdout(gold, hasta, test_weeks):
     """Las mismas semanas de prueba que usó el modelo al entrenarse."""
-    data = gold.dropna(subset=FEATURES + ["clase"])
+    data = gold.dropna(subset=BASE_FEATURES + ["clase"])
     data = data[data["semana_inicio"] <= pd.Timestamp(hasta)]
     weeks = sorted(data["semana_inicio"].unique())[-test_weeks:]
     return data[data["semana_inicio"].isin(weeks)]
@@ -63,12 +63,13 @@ def simulated_saving(test, pred):
 def evaluate_version(model, entry, gold, cfg):
     """Re-evalúa una versión guardada y los dos baselines sobre su periodo de prueba."""
     test = holdout(gold, entry["datos"]["hasta"], cfg["model"]["test_weeks"])
-    X, y = test[["producto"] + FEATURES], test["clase"]
+    X, y = test[["producto"] + entry["features"]], test["clase"]
     pred = model.predict(X)
     candidates = {
         "modelo": (pred, model.predict_proba(X)),
         "baseline_persistencia": (test["cambio_1s"].apply(classify, threshold=cfg["model"]["threshold"]), None),
         "baseline_estable": (["estable"] * len(test), None),
+        "baseline_comprar_todo": (["sube"] * len(test), None),
     }
     rows = []
     for name, (p, proba) in candidates.items():

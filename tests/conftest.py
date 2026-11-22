@@ -55,3 +55,47 @@ def silver():
                     "precio_medio": price, "tendencia": "=", "archivo": "x.xlsx",
                 })
     return pd.DataFrame(rows)
+
+
+def weekly_title(start):
+    end = start + pd.Timedelta(days=6)
+    months = ["enero", "febrero", "marzo", "abril", "mayo", "junio", "julio", "agosto",
+              "septiembre", "octubre", "noviembre", "diciembre"]
+    return (f"Boletín semanal precios mayoristas - {start.day} de {months[start.month - 1]} "
+            f"al {end.day} de {months[end.month - 1]} de {end.year}")
+
+
+@pytest.fixture
+def cfg(tmp_path):
+    """Configuración completa apuntando a una carpeta temporal."""
+    for layer in ["bronze", "silver", "gold"]:
+        (tmp_path / layer).mkdir()
+    return {
+        "paths": {"bronze": str(tmp_path / "bronze"), "silver": str(tmp_path / "silver"),
+                  "gold": str(tmp_path / "gold"), "models": str(tmp_path / "models"),
+                  "logs": str(tmp_path / "logs"), "database": str(tmp_path / "gold" / "test.db")},
+        "market": "Cali, Cavasa", "products": PRODUCTS,
+        "model": {"threshold": 0.03, "test_weeks": 6, "min_history_weeks": 8, "random_state": 42},
+        "monitoring": {"drift_zscore": 3.0, "min_accuracy": 0.40},
+        "llm": {"model": "modelo-de-prueba", "max_tokens": 100},
+    }
+
+
+@pytest.fixture
+def bronze(cfg):
+    """Cuarenta boletines con un patrón de precios que se puede aprender."""
+    for w, week in enumerate(pd.date_range("2026-01-03", periods=40, freq="7D")):
+        rows = []
+        for p, product in enumerate(PRODUCTS):
+            for market, factor in [("Cali, Cavasa", 1.0), ("Bogotá, D.C., Corabastos", 0.9)]:
+                price = round((3000 + [0, 400, 400, 800][(w + p) % 4]) * factor)  # sube, estable, sube, baja
+                rows.append((product, market, price - 100, price + 100, price, "="))
+        write_bulletin(Path(cfg["paths"]["bronze"]) / f"sipsa_{w:04d}.xlsx", weekly_title(week), rows)
+    return cfg
+
+
+@pytest.fixture(autouse=True)
+def sin_servicios_externos(monkeypatch):
+    """Ningún test llama a Claude ni a MLflow."""
+    monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
+    monkeypatch.delenv("MLFLOW_TRACKING_URI", raising=False)
