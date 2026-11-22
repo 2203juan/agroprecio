@@ -1,6 +1,7 @@
 import importlib
 import sys
 
+import pandas as pd
 import pytest
 import yaml
 from fastapi.testclient import TestClient
@@ -19,7 +20,8 @@ def client(bronze, tmp_path, monkeypatch):
     sys.modules.pop("api.main", None)
     module = importlib.import_module("api.main")
     yield TestClient(module.app)
-    REGISTRY.unregister(module.COLLECTOR)
+    # La prueba puede haber recargado la API: se limpia la que quedó activa
+    REGISTRY.unregister(sys.modules["api.main"].COLLECTOR)
     sys.modules.pop("api.main", None)
 
 
@@ -74,3 +76,36 @@ def test_prometheus_groups_by_route(client):
     client.get("/historico/Cilantro")
     text = client.get("/prometheus").text
     assert 'ruta="/historico/{producto}"' in text and "/historico/Cilantro" not in text
+
+
+@pytest.fixture
+def public_client(client, tmp_path, monkeypatch):
+    """La misma API como corre en la nube: pública y con un volumen para las opiniones."""
+    monkeypatch.setenv("AGRO_PUBLICO", "1")
+    monkeypatch.setenv("AGRO_ESTADO", str(tmp_path / "estado"))
+
+    def restart():
+        REGISTRY.unregister(sys.modules["api.main"].COLLECTOR)
+        sys.modules.pop("api.main", None)
+        return TestClient(importlib.import_module("api.main").app)
+    return restart
+
+
+def test_public_list_is_costed_but_not_shared(public_client):
+    client = public_client()
+    body = {"restaurante": "Uno", "items": [{"producto": "Cilantro", "kg_semana": 2}]}
+    assert client.put("/lista", json=body).json()["items"][0]["producto"] == "Cilantro"
+    assert client.get("/lista").json()["items"] == []
+    assert client.get("/vigencia").json()["publico"] is True
+
+
+def test_public_update_is_closed(public_client):
+    assert public_client().post("/actualizar").status_code == 403
+
+
+def test_public_opinions_survive_a_restart(public_client, bronze):
+    public_client().post("/opiniones", json={"util": True, "restaurante": "R1", "comentario": "sirvió"})
+    # Reinicio con la base como viene en la imagen: sin opiniones
+    from src.load.load_database import save_table
+    save_table(pd.DataFrame(columns=["fecha", "util"]), "opiniones", bronze["paths"]["database"])
+    assert public_client().get("/opiniones").json() == {"total": 1, "utiles": 1, "porcentaje_util": 1.0}

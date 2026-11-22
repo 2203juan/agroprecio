@@ -1,5 +1,10 @@
 # Historial de versiones
 
+## Sin publicar
+- Despliegue en Azure App Service (plan gratuito): imagen única (`Dockerfile.nube`) con página, API, base y modelo. El workflow semanal la publica en ghcr.io.
+- Modo público (`AGRO_PUBLICO=1`): la lista se guarda en el navegador, el botón de actualizar no aparece y las opiniones sobreviven a los reinicios.
+- Fondo animado para el pitch (`pitch/`) y guion adaptado a dueños de restaurante.
+
 ## v0.6.0 · Modelo
 - Modelo nuevo: promedio de HistGradientBoosting y ExtraTrees, con 33 variables y dos mercados de Cali. F1 de 0,447 a 0,472 y ahorro simulado de 0,39 % a 1,01 % en la prueba.
 - El modelo en producción se reajusta con todos los datos después de evaluarse.

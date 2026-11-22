@@ -1,0 +1,505 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>AgroPrecio · Pitch</title>
+<style>
+@font-face { font-family: "Bricolage Grotesque"; src: url(fonts/bricolage-grotesque.woff2) format("woff2"); font-weight: 400 800; font-stretch: 100%; }
+@font-face { font-family: "DM Sans"; src: url(fonts/dm-sans.woff2) format("woff2"); font-weight: 400 700; }
+@property --p { syntax: "<number>"; inherits: false; initial-value: 0; }
+
+:root {
+  --forest: #174a2c; --forest-2: #0f3520; --green: #19803a; --mist: #e4f3d6; --lime: #c9e8a9;
+  --yellow: #ffc21a; --cream: #fbf7ec; --ink: #14251a; --grey: #d9ddd6; --white: #fff;
+  --display: "Bricolage Grotesque", sans-serif;
+  --out: cubic-bezier(.2, .8, .2, 1);
+}
+* { box-sizing: border-box; margin: 0; }
+html, body { height: 100%; background: #000; overflow: hidden; }
+body { font-family: "DM Sans", sans-serif; color: var(--ink); cursor: none; }
+body.pointer { cursor: default; }
+
+#stage { position: absolute; left: 50%; top: 50%; width: 1920px; height: 1080px; transform-origin: 0 0; overflow: hidden; background: var(--forest); }
+
+/* ---------- Escenas ---------- */
+.scene { position: absolute; inset: 0; overflow: hidden; visibility: hidden; }
+.scene.vis { visibility: visible; }
+.scene.on { animation: wipe .9s cubic-bezier(.7, 0, .2, 1) both; }
+.scene.s0.on { animation: none; }
+@keyframes wipe { from { clip-path: inset(0 0 0 100%); } to { clip-path: inset(0 0 0 0); } }
+
+.dark { --bg: #1b4d30; background: var(--forest) repeating-linear-gradient(-45deg, rgba(255,255,255,.04) 0 30px, transparent 30px 60px); color: var(--white); }
+.darker { --bg: #133823; background: var(--forest-2) repeating-linear-gradient(-45deg, rgba(255,255,255,.03) 0 30px, transparent 30px 60px); color: var(--white); }
+.light { --bg: var(--cream); background: var(--cream); }
+.mist { --bg: #dff0d1; background: var(--mist) repeating-linear-gradient(-45deg, rgba(25,128,58,.05) 0 30px, transparent 30px 60px); }
+.sun { --bg: #ffc52a; background: var(--yellow) repeating-linear-gradient(-45deg, rgba(255,255,255,.1) 0 30px, transparent 30px 60px); }
+
+h1, h2, .big { font-family: var(--display); font-weight: 800; letter-spacing: -.03em; line-height: .92; }
+.outline { color: var(--bg); -webkit-text-stroke: 9px var(--yellow); paint-order: stroke fill; }
+.outline.forest { -webkit-text-stroke-color: var(--forest); }
+.kicker { font-weight: 700; font-size: 34px; letter-spacing: .14em; text-transform: uppercase; color: var(--yellow); }
+
+/* Entradas: sólo corren cuando la escena está activa */
+.rise, .pop, .slide { opacity: 0; }
+.on .rise { animation: rise .9s var(--dl, 0s) var(--out) both; }
+.on .pop { animation: pop .7s var(--dl, 0s) cubic-bezier(.3, 1.5, .5, 1) both; }
+.on .slide { animation: slide 1s var(--dl, 0s) var(--out) both; }
+@keyframes rise { from { opacity: 0; transform: translateY(60px); } to { opacity: 1; transform: none; } }
+@keyframes pop { from { opacity: 0; transform: scale(.4); } to { opacity: 1; transform: scale(1); } }
+@keyframes slide { from { opacity: 0; transform: translateX(-80px); } to { opacity: 1; transform: none; } }
+.on [data-count] { animation: p var(--dur, 2s) var(--dl, 0s) cubic-bezier(.2, .7, .2, 1) both; }
+@keyframes p { to { --p: 1; } }
+
+/* Barra de ritmo: un tramo por escena, se llena en el tiempo previsto */
+.pace { position: absolute; left: 100px; right: 100px; bottom: 26px; display: flex; gap: 10px; }
+.pace i { height: 8px; border-radius: 4px; background: rgba(255,255,255,.2); overflow: hidden; }
+.pace i b { display: block; height: 100%; background: var(--yellow); transform-origin: 0 50%; transform: scaleX(0); }
+.pace i.done b { transform: none; }
+.on .pace i.now b { animation: fill calc(var(--d) * 1s) linear both; }
+@keyframes fill { to { transform: none; } }
+.light .pace i, .mist .pace i, .sun .pace i { background: rgba(23,74,44,.16); }
+.light .pace i b, .mist .pace i b, .sun .pace i b { background: var(--forest); }
+
+/* Tira de fotos que se desliza */
+.strip { position: absolute; left: 0; bottom: 90px; display: flex; gap: 28px; width: max-content; }
+.on .strip { animation: marquee 70s linear infinite; }
+.strip img { width: 200px; height: 200px; object-fit: cover; border-radius: 28px; border: 6px solid var(--white); box-shadow: 0 16px 30px rgba(0,0,0,.25); }
+.strip img:nth-child(odd) { transform: rotate(-3deg) translateY(10px); }
+.strip img:nth-child(even) { transform: rotate(2.5deg); }
+@keyframes marquee { to { transform: translateX(-50%); } }
+
+/* ---------- 0. Portada ---------- */
+.brand { position: absolute; left: 100px; top: 150px; }
+.brand .logo { display: flex; align-items: center; gap: 36px; font-family: var(--display); font-weight: 800; font-size: 250px; letter-spacing: -.045em; line-height: 1; }
+.brand .logo svg { width: 210px; height: 210px; fill: var(--yellow); }
+.brand .logo span { color: var(--yellow); }
+.brand p { margin: 26px 0 0 8px; font-size: 62px; font-weight: 500; color: var(--lime); }
+.tab { position: absolute; right: 100px; top: 0; padding: 60px 44px 34px; background: var(--yellow); color: var(--forest); font: 800 44px/1 var(--display); border-radius: 0 0 28px 28px; transform-origin: 50% 0; }
+.on .tab { animation: drop 1s .5s cubic-bezier(.3, 1.4, .5, 1) both; }
+@keyframes drop { from { transform: translateY(-110%); } to { transform: none; } }
+
+/* ---------- 1. El problema ---------- */
+.s1 .left { position: absolute; left: 100px; top: 110px; width: 800px; }
+.s1 h1 { font-size: 172px; margin-top: 26px; }
+.seven { margin-top: 70px; display: flex; align-items: flex-end; gap: 30px; }
+.seven .n { font: 800 330px/.78 var(--display); letter-spacing: -.05em; color: var(--yellow); }
+.seven .t { font: 800 78px/.98 var(--display); letter-spacing: -.02em; padding-bottom: 8px; }
+.dots { margin-top: 44px; display: flex; gap: 18px; }
+.dots i { width: 56px; height: 56px; border-radius: 50%; border: 5px solid rgba(255,255,255,.35); opacity: 0; }
+.dots i.hit { background: var(--yellow); border-color: var(--yellow); }
+.on .dots i { animation: pop .5s calc(14s + var(--k) * .16s) cubic-bezier(.3, 1.5, .5, 1) both; }
+.s1 .more { margin-top: 34px; font-size: 46px; font-weight: 500; color: var(--lime); }
+.cards { position: absolute; right: 100px; top: 120px; display: grid; grid-template-columns: repeat(3, 280px); gap: 34px; }
+.pcard { background: var(--white); color: var(--ink); border-radius: 30px; overflow: hidden; box-shadow: 0 24px 40px rgba(0,0,0,.3); }
+.pcard img { display: block; width: 100%; height: 232px; object-fit: cover; }
+.pcard .nm { padding: 18px 24px 0; font-size: 31px; font-weight: 700; white-space: nowrap; }
+.pcard .pr { padding: 2px 24px 22px; display: flex; align-items: center; justify-content: space-between; font: 800 50px/1.1 var(--display); letter-spacing: -.02em; }
+.pcard .ar { display: grid; place-items: center; width: 54px; height: 54px; border-radius: 50%; font: 800 36px/1 var(--display); background: var(--grey); color: transparent; }
+.pcard.up .ar { background: var(--yellow); color: var(--forest); }
+.pcard.down .ar { background: var(--green); color: var(--white); }
+
+/* ---------- 2. El dato existe ---------- */
+.s2 .left { position: absolute; left: 100px; top: 110px; width: 760px; }
+.s2 .kicker, .s3 .kicker, .s6 .kicker { color: var(--green); }
+.s2 .num { margin-top: 30px; font: 800 300px/.86 var(--display); letter-spacing: -.055em; color: var(--forest); font-variant-numeric: tabular-nums; }
+.s2 .unit { font: 800 120px/1 var(--display); letter-spacing: -.03em; color: var(--green); }
+.chips { margin-top: 56px; display: flex; flex-wrap: wrap; gap: 20px; }
+.chip { padding: 20px 36px; border-radius: 999px; font-size: 42px; font-weight: 700; background: var(--mist); color: var(--forest); }
+.chip.y { background: var(--yellow); }
+.sheet { position: absolute; left: 900px; top: 96px; width: 1140px; height: 880px; background: var(--white); border-radius: 26px; overflow: hidden; box-shadow: 0 40px 80px rgba(20,37,26,.22); transform: rotate(-3deg); }
+.on .sheet { animation: sheetin 1.2s .3s var(--out) both, sheetoff 1.5s 19s ease both; }
+@keyframes sheetin { from { opacity: 0; transform: translateY(160px) rotate(2deg); } to { opacity: 1; transform: rotate(-3deg); } }
+@keyframes sheetoff { to { filter: grayscale(1) opacity(.45); } }
+.sheet .top { position: relative; z-index: 2; height: 76px; padding: 0 30px; display: flex; align-items: center; gap: 16px; background: var(--green); color: var(--white); font-size: 30px; font-weight: 700; }
+.sheet .top i { width: 34px; height: 34px; border-radius: 8px; background: var(--white); opacity: .9; }
+.row { display: grid; grid-template-columns: 70px 2.3fr 2fr 1fr 1fr 1fr; height: 54px; align-items: center; font-size: 25px; border-bottom: 2px solid #e6ebe3; white-space: nowrap; font-variant-numeric: tabular-nums; }
+.row span { padding: 0 16px; overflow: hidden; }
+.row span:first-child { color: #9aa79c; background: #f1f4ee; align-self: stretch; display: grid; place-items: center; padding: 0; border-right: 2px solid #e6ebe3; }
+.row span:nth-child(n+4) { text-align: right; }
+.row.head { font-weight: 700; background: #f1f4ee; color: #55655a; position: relative; z-index: 2; }
+.on .rows { animation: scroll 16s linear infinite; }
+@keyframes scroll { to { transform: translateY(-50%); } }
+.stamp { position: absolute; left: 900px; top: 470px; white-space: nowrap; padding: 30px 56px 38px; background: var(--forest); color: var(--yellow); font: 800 132px/1 var(--display); letter-spacing: -.03em; border-radius: 30px; transform: rotate(-7deg); opacity: 0; box-shadow: 0 30px 60px rgba(20,37,26,.4); }
+.on .stamp { animation: stamp .6s 20s cubic-bezier(.3, 1.4, .5, 1) both; }
+@keyframes stamp { from { opacity: 0; transform: rotate(-7deg) scale(2.2); } to { opacity: 1; transform: rotate(-7deg) scale(1); } }
+
+/* ---------- 3. La solución ---------- */
+.s3 .head { position: absolute; left: 100px; top: 70px; }
+.s3 h1 { font-size: 118px; margin-top: 14px; color: var(--forest); }
+.groups { position: absolute; left: 100px; right: 100px; top: 310px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; }
+.group { background: var(--white); border-radius: 34px; overflow: hidden; height: 706px; box-shadow: 0 26px 50px rgba(23,74,44,.18); }
+.group header { height: 150px; padding: 0 36px; display: flex; align-items: center; justify-content: space-between; white-space: nowrap; font: 800 60px/1 var(--display); letter-spacing: -.03em; }
+.group header small { display: block; margin-top: 10px; font: 500 32px/1 "DM Sans", sans-serif; letter-spacing: 0; opacity: .85; }
+.group header b { font-size: 110px; font-variant-numeric: tabular-nums; }
+.group.ya header { background: var(--green); color: var(--white); }
+.group.espera header { background: var(--yellow); color: var(--forest); }
+.group.normal header { background: var(--grey); color: var(--ink); }
+.thumbs { padding: 28px 30px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+.thumbs img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 20px; opacity: 0; }
+.on .thumbs img { animation: pop .6s calc(var(--t0) + var(--k) * .45s) cubic-bezier(.3, 1.5, .5, 1) both; }
+
+/* ---------- 4. Cómo funciona ---------- */
+.s4 .head { position: absolute; left: 100px; top: 80px; }
+.s4 h1 { font-size: 138px; margin-top: 16px; }
+.flow { position: absolute; left: 0; right: 0; top: 400px; height: 400px; }
+.flow .line { position: absolute; left: 300px; right: 300px; top: 135px; height: 10px; border-radius: 5px; background: repeating-linear-gradient(90deg, rgba(255,255,255,.35) 0 26px, transparent 26px 46px); transform-origin: 0 50%; transform: scaleX(0); }
+.on .flow .line { animation: grow 9s 1s linear both; }
+@keyframes grow { to { transform: none; } }
+.flow .dot { position: absolute; top: 116px; left: 300px; width: 48px; height: 48px; margin-left: -24px; border-radius: 50%; background: var(--yellow); box-shadow: 0 0 0 12px rgba(255,194,26,.25); opacity: 0; }
+.on .flow .dot { animation: travel 5s 11.5s linear infinite; }
+@keyframes travel { 0% { transform: translateX(0); opacity: 1; } 96% { transform: translateX(1320px); opacity: 1; } 100% { transform: translateX(1320px); opacity: 0; } }
+.node { position: absolute; top: 0; width: 440px; margin-left: -220px; text-align: center; }
+.node .disc { width: 280px; height: 280px; margin: 0 auto; border-radius: 50%; background: var(--white); display: grid; place-items: center; box-shadow: 0 24px 50px rgba(0,0,0,.3); position: relative; z-index: 1; }
+.node svg { width: 150px; height: 150px; }
+.node p { margin-top: 30px; font: 800 50px/1.05 var(--display); letter-spacing: -.02em; }
+.badges { position: absolute; left: 0; right: 0; top: 880px; display: flex; justify-content: center; gap: 28px; }
+.badge { display: flex; align-items: center; gap: 18px; padding: 22px 40px; border-radius: 999px; background: rgba(255,255,255,.12); font-size: 42px; font-weight: 700; }
+.badge::before { content: ""; width: 26px; height: 26px; border-radius: 50%; background: var(--yellow); }
+
+/* ---------- 5. Qué tan bueno es ---------- */
+.s5 { color: var(--forest); }
+.s5 .head { position: absolute; left: 100px; top: 80px; }
+.s5 h1 { font-size: 140px; }
+.spend { position: absolute; left: 100px; top: 300px; width: 760px; height: 330px; padding: 44px 50px; background: var(--white); border-radius: 34px; box-shadow: 0 26px 50px rgba(23,74,44,.2); }
+.spend small, .year small { display: block; font-size: 44px; font-weight: 700; }
+.spend b { display: block; margin-top: 26px; font: 800 136px/1 var(--display); letter-spacing: -.045em; }
+.to { position: absolute; left: 872px; top: 415px; width: 100px; height: 100px; }
+.year { position: absolute; left: 980px; top: 300px; width: 840px; height: 400px; padding: 36px 50px; background: var(--forest); color: var(--white); border-radius: 34px; box-shadow: 0 26px 50px rgba(23,74,44,.3); }
+.year b { display: block; margin-top: 22px; font: 800 196px/1 var(--display); letter-spacing: -.05em; color: var(--yellow); font-variant-numeric: tabular-nums; }
+.year em { display: block; margin-top: 14px; font-style: normal; font-size: 46px; font-weight: 500; color: var(--lime); }
+.weeks { position: absolute; left: 100px; top: 680px; width: 760px; display: grid; grid-template-columns: repeat(13, 1fr); gap: 14px 0; }
+.weeks i { width: 44px; height: 44px; border-radius: 50%; background: var(--forest); opacity: 0; }
+.on .weeks i { animation: pop .4s calc(7s + var(--k) * .11s) cubic-bezier(.3, 1.5, .5, 1) both; }
+.wk { position: absolute; left: 100px; top: 930px; font-size: 40px; font-weight: 700; }
+.facts { position: absolute; left: 980px; top: 736px; width: 840px; display: grid; gap: 20px; }
+.fact { padding: 22px 36px; border-radius: 26px; background: rgba(255,255,255,.55); white-space: nowrap; font-size: 37px; font-weight: 700; }
+
+/* ---------- 6. Lo que sigue ---------- */
+.s6 .head { position: absolute; left: 100px; top: 80px; }
+.s6 h1 { font-size: 150px; margin-top: 16px; color: var(--forest); }
+.next { position: absolute; left: 100px; right: 100px; top: 390px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 40px; }
+.ncard { height: 400px; padding: 40px; background: var(--white); border-radius: 34px; box-shadow: 0 26px 50px rgba(23,74,44,.14); display: flex; flex-direction: column; justify-content: space-between; overflow: hidden; }
+.ncard p { font: 800 62px/1 var(--display); letter-spacing: -.02em; color: var(--forest); }
+.ncard .art { height: 200px; position: relative; }
+.plates { display: flex; gap: 14px; align-items: center; height: 200px; }
+.plates i { width: 86px; height: 86px; border-radius: 50%; border: 8px solid var(--grey); display: grid; place-items: center; }
+.plates i::after { content: ""; width: 40px; height: 40px; border-radius: 50%; background: var(--grey); }
+.on .plates i { animation: plate .6s calc(3s + var(--k) * .7s) cubic-bezier(.3, 1.5, .5, 1) both; }
+.on .plates i::after { animation: plate2 .6s calc(3s + var(--k) * .7s) both; }
+@keyframes plate { 50% { transform: scale(1.25); } to { border-color: var(--green); } }
+@keyframes plate2 { to { background: var(--yellow); } }
+.clock { position: absolute; left: 0; top: 10px; width: 180px; height: 180px; }
+.clock .hand { transform-origin: 32px 32px; }
+.on .clock .hand { animation: spin 6s 6.5s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.free { position: absolute; left: 0; top: 20px; padding: 14px 44px 20px; border-radius: 28px; background: var(--yellow); color: var(--forest); font: 800 130px/1 var(--display); letter-spacing: -.04em; transform-origin: 0 50%; }
+.on .free { animation: pop .7s 11s cubic-bezier(.3, 1.5, .5, 1) both, tilt 3s 12s ease-in-out infinite alternate; }
+@keyframes tilt { from { rotate: -4deg; } to { rotate: 3deg; } }
+.live { position: absolute; left: 0; right: 0; bottom: 0; height: 230px; padding: 0 100px 40px; display: flex; align-items: center; justify-content: space-between; background: var(--forest); color: var(--yellow); font: 800 130px/1 var(--display); letter-spacing: -.03em; transform: translateY(100%); }
+.on .live { animation: liveup 1s 15s var(--out) both; }
+@keyframes liveup { to { transform: none; } }
+.live svg { width: 150px; height: 150px; }
+.on .live svg { animation: nudge 1.2s 16s ease-in-out infinite; }
+@keyframes nudge { 50% { transform: translateX(30px); } }
+.s6 .pace { z-index: 2; }
+
+/* ---------- 7. Cierre ---------- */
+.s7 .txt { position: absolute; left: 100px; top: 110px; }
+.s7 h1 { font-size: 150px; }
+.s7 h1 + h1 { margin-top: 26px; }
+.s7 .sign { position: absolute; left: 100px; top: 640px; display: flex; align-items: center; gap: 20px; font: 800 66px/1 var(--display); letter-spacing: -.03em; }
+.s7 .sign svg { width: 64px; height: 64px; fill: var(--yellow); }
+.s7 .sign span { color: var(--yellow); }
+.s7 .sign em { margin-left: 30px; font: 500 38px/1 "DM Sans", sans-serif; letter-spacing: 0; color: var(--lime); }
+.s7 .strip { bottom: 60px; }
+
+/* Ayuda de teclas (no sale en el video) */
+#hint { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); padding: 10px 18px; border-radius: 999px; background: rgba(0,0,0,.7); color: #fff; font-size: 15px; transition: opacity .4s; pointer-events: none; white-space: nowrap; }
+#hint.off { opacity: 0; }
+</style>
+</head>
+<body>
+<div id="stage">
+
+  <!-- 0. Portada -->
+  <section class="scene s0 dark" data-d="6">
+    <div class="tab">Cali · Cavasa</div>
+    <div class="brand">
+      <div class="logo rise"><svg viewBox="0 0 32 32"><path d="M27 4C13 4 5 11 5 20c0 2 .5 3.8 1.3 5.3C10 17 16 12 23 9.5 16.5 13.5 11.5 19 9 27.5c1.300.3 2.700.5 4 .5 9 0 15-8 14-24Z"/></svg><b>Agro<span>Precio</span></b></div>
+      <p class="rise" style="--dl:.3s">Precios de la plaza para tu cocina</p>
+    </div>
+    <div class="strip" data-strip></div>
+  </section>
+
+  <!-- 1. El problema -->
+  <section class="scene s1 darker" data-d="29">
+    <div class="left">
+      <p class="kicker rise" style="--dl:.5s">Cada semana</p>
+      <h1 class="rise" style="--dl:.7s">Comprar <span class="outline">a&nbsp;ciegas</span></h1>
+      <div class="seven">
+        <div class="n pop" style="--dl:13s">7</div>
+        <div class="t rise" style="--dl:13.4s">de cada 10<br>semanas</div>
+      </div>
+      <div class="dots" data-dots></div>
+      <p class="more rise" style="--dl:16.5s">el precio cambia más de 3&nbsp;%</p>
+    </div>
+    <div class="cards" data-cards></div>
+  </section>
+
+  <!-- 2. El dato existe -->
+  <section class="scene s2 light" data-d="30">
+    <div class="left">
+      <p class="kicker rise" style="--dl:.5s">Boletín del DANE</p>
+      <div class="num rise" style="--dl:.8s"><span data-count data-to="4000" style="--dur:14s;--dl:1.5s">0</span></div>
+      <div class="unit rise" style="--dl:1s">filas de Excel</div>
+      <div class="chips">
+        <span class="chip y pop" style="--dl:8s">Gratis</span>
+        <span class="chip pop" style="--dl:9.5s">Cada viernes</span>
+        <span class="chip pop" style="--dl:11s">Todo el país</span>
+      </div>
+    </div>
+    <div class="sheet">
+      <div class="top"><i></i>Boletín semanal · precios mayoristas</div>
+      <div class="row head"><span></span><span>Producto</span><span>Mercado</span><span>Mínimo</span><span>Máximo</span><span>Medio</span></div>
+      <div class="rows" data-rows></div>
+    </div>
+    <div class="stamp">Nadie lo abre</div>
+  </section>
+
+  <!-- 3. La solución -->
+  <section class="scene s3 mist" data-d="30">
+    <div class="head">
+      <p class="kicker rise" style="--dl:.5s">AgroPrecio lo lee por ti</p>
+      <h1 class="rise" style="--dl:.7s">¿Qué compro ya y <span class="outline forest">qué espero?</span></h1>
+    </div>
+    <div class="groups">
+      <div class="group ya rise" style="--dl:2.5s"><header><div>Compra ya<small>va a subir</small></div><b data-count data-to="9" style="--dur:4s;--dl:5s">0</b></header><div class="thumbs" data-group="sube" style="--t0:5s"></div></div>
+      <div class="group espera rise" style="--dl:9.5s"><header><div>Espera<small>va a bajar</small></div><b data-count data-to="8" style="--dur:3.6s;--dl:12s">0</b></header><div class="thumbs" data-group="baja" style="--t0:12s"></div></div>
+      <div class="group normal rise" style="--dl:16.5s"><header><div>Como siempre<small>sigue igual</small></div><b data-count data-to="3" style="--dur:1.4s;--dl:19s">0</b></header><div class="thumbs" data-group="estable" style="--t0:19s"></div></div>
+    </div>
+  </section>
+
+  <!-- 4. Así lo usas -->
+  <section class="scene s4 dark" data-d="30">
+    <div class="head">
+      <p class="kicker rise" style="--dl:.5s">Así lo usas</p>
+      <h1 class="rise" style="--dl:.7s">Fácil, <span class="outline">cada semana</span></h1>
+    </div>
+    <div class="flow">
+      <div class="line"></div>
+      <div class="dot"></div>
+      <div class="node pop" style="left:300px;--dl:1s">
+        <div class="disc"><svg viewBox="0 0 64 64" fill="none" stroke="#19803a" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"><path d="M10 16l5 5 8-9M10 33l5 5 8-9M10 50l5 5 8-9"/><path d="M32 17h22M32 34h22M32 51h22" stroke="#174a2c"/></svg></div>
+        <p>Anotas tu lista<br>de mercado</p>
+      </div>
+      <div class="node pop" style="left:740px;--dl:4s">
+        <div class="disc"><svg viewBox="0 0 64 64"><rect x="8" y="9" width="48" height="12" rx="6" fill="#19803a"/><rect x="8" y="26" width="36" height="12" rx="6" fill="#ffc21a"/><rect x="8" y="43" width="42" height="12" rx="6" fill="#c5cbc2"/></svg></div>
+        <p>Ves qué comprar<br>y qué esperar</p>
+      </div>
+      <div class="node pop" style="left:1180px;--dl:7s">
+        <div class="disc"><svg viewBox="0 0 64 64"><circle cx="32" cy="32" r="25" fill="#ffc21a"/><circle cx="32" cy="32" r="18" fill="none" stroke="#174a2c" stroke-width="3" stroke-dasharray="3 5"/><text x="32" y="43" text-anchor="middle" font-family="Bricolage Grotesque" font-weight="800" font-size="30" fill="#174a2c">$</text></svg></div>
+        <p>Sabes cuánto te<br>cuesta la semana</p>
+      </div>
+      <div class="node pop" style="left:1620px;--dl:10s">
+        <div class="disc"><svg viewBox="0 0 64 64" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M10 12h44a4 4 0 0 1 4 4v26a4 4 0 0 1-4 4H30L18 56V46h-8a4 4 0 0 1-4-4V16a4 4 0 0 1 4-4Z" fill="#19803a"/><path d="M20 29l8 8 16-16" stroke="#fff" stroke-width="5"/></svg></div>
+        <p>Lo compartes<br>por WhatsApp</p>
+      </div>
+    </div>
+    <div class="badges">
+      <span class="badge pop" style="--dl:16s">Sin instalar nada</span>
+      <span class="badge pop" style="--dl:18.5s">Sin cambiar de proveedor</span>
+      <span class="badge pop" style="--dl:21s">Tú decides</span>
+    </div>
+  </section>
+
+  <!-- 5. Cuánto me ahorro -->
+  <section class="scene s5 sun" data-d="30">
+    <div class="head"><h1 class="rise" style="--dl:.6s">¿Cuánto me <span class="outline forest">ahorro?</span></h1></div>
+    <div class="spend rise" style="--dl:2s">
+      <small>Si compras a la semana</small>
+      <b>$1.000.000</b>
+    </div>
+    <div class="weeks" data-weeks></div>
+    <p class="wk rise" style="--dl:7s">52 semanas</p>
+    <svg class="to pop" style="--dl:5s" viewBox="0 0 64 64" fill="none" stroke="#174a2c" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 32h46M36 14l18 18-18 18"/></svg>
+    <div class="year rise" style="--dl:6s">
+      <small>Podrías ahorrar al año</small>
+      <b>$<span data-count data-to="520000" style="--dur:6s;--dl:7s">0</span></b>
+      <em>cerca de $10.000 cada semana</em>
+    </div>
+    <div class="facts">
+      <span class="fact rise" style="--dl:16s">Probado con 20 semanas de precios reales</span>
+      <span class="fact rise" style="--dl:20s">No siempre acierta, y te lo dice</span>
+    </div>
+  </section>
+
+  <!-- 6. ¿Lo probamos? -->
+  <section class="scene s6 light" data-d="25">
+    <div class="head">
+      <p class="kicker rise" style="--dl:.5s">Lo que sigue</p>
+      <h1 class="rise" style="--dl:.7s">¿Lo <span class="outline forest">probamos?</span></h1>
+    </div>
+    <div class="next">
+      <div class="ncard rise" style="--dl:2s"><div class="art"><div class="plates" data-plates></div></div><p>Buscamos 5 restaurantes</p></div>
+      <div class="ncard rise" style="--dl:6s"><div class="art">
+        <svg class="clock" viewBox="0 0 64 64" fill="none" stroke="#174a2c" stroke-width="5" stroke-linecap="round"><circle cx="32" cy="32" r="26" fill="#e4f3d6"/><path d="M32 32V16"/><path class="hand" d="M32 32h12" stroke="#19803a"/></svg>
+      </div><p>15 minutos para empezar</p></div>
+      <div class="ncard rise" style="--dl:10s"><div class="art"><div class="free pop" style="--dl:11s">$0</div></div><p>Gratis y sin instalar nada</p></div>
+    </div>
+    <div class="live">Veámoslo en vivo
+      <svg viewBox="0 0 64 64" fill="none" stroke="#ffc21a" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"><path d="M8 32h46M36 14l18 18-18 18"/></svg>
+    </div>
+  </section>
+
+  <!-- 7. Cierre (después de la demostración) -->
+  <section class="scene s7 dark" data-d="15">
+    <div class="txt">
+      <h1 class="rise" style="--dl:.6s">Los precios ya son públicos.</h1>
+      <h1 class="rise outline" style="--dl:1.6s">Falta que lleguen<br>a tu cocina.</h1>
+    </div>
+    <div class="sign rise" style="--dl:2.8s"><svg viewBox="0 0 32 32"><path d="M27 4C13 4 5 11 5 20c0 2 .5 3.8 1.3 5.3C10 17 16 12 23 9.5 16.5 13.5 11.500 19 9 27.5c1.300.3 2.700.5 4 .5 9 0 15-8 14-24Z"/></svg><b>Agro<span>Precio</span></b><em>Precios de la plaza para tu cocina</em></div>
+    <div class="strip" data-strip></div>
+  </section>
+</div>
+<div id="hint">→ siguiente · ← anterior · A automático (3:00) · F pantalla completa</div>
+
+<script>
+const PHOTOS = ["tomate-chonto","platano","limon","cilantro","mora","papa-pastusa","lechuga","mango","zanahoria","aguacate","pimenton","lulo","cebolla-cabezona","yuca","maracuya","habichuela","ahuyama","tomate-arbol","cebolla-junca","papa-capira"];
+// Recomendación del boletín del 31 de octubre al 6 de noviembre de 2026
+const GROUPS = {
+  sube: ["cebolla-junca","lechuga","mora","habichuela","platano","zanahoria","lulo","cilantro","limon"],
+  baja: ["maracuya","pimenton","papa-pastusa","papa-capira","tomate-arbol","mango","tomate-chonto","cebolla-cabezona"],
+  estable: ["aguacate","yuca","ahuyama"],
+};
+const CARDS = [["Tomate chonto","tomate-chonto",3738],["Cebolla blanca","cebolla-cabezona",2129],["Papa pastusa","papa-pastusa",3392],["Plátano hartón","platano",2071],["Cilantro","cilantro",3854],["Limón Tahití","limon",2021]];
+const SHEET = [["Tomate chonto","Cali, Cavasa"],["Papa capira","Bogotá, Corabastos"],["Cebolla junca","Medellín, CMA"],["Plátano hartón","Cali, Santa Elena"],["Mora de Castilla","Pereira, Mercasa"],["Zanahoria","Tunja"],["Limón Tahití","Bucaramanga"],["Yuca","Barranquilla"],["Aguacate papelillo","Armenia, Mercar"],["Lulo","Neiva, Surabastos"],["Habichuela","Cúcuta, Cenabastos"],["Mango Tommy","Cartagena, Bazurto"],["Pimentón","Ibagué"],["Ahuyama","Montería"],["Maracuyá","Popayán"],["Cilantro","Pasto, El Potrerillo"]];
+
+const img = (f) => `<img src="img/${f}.webp" alt="">`;
+const rnd = (a, b) => { const x = Math.sin(a * 12.9898 + b * 78.233) * 43758.5453; return x - Math.floor(x); };
+const $ = (s) => [...document.querySelectorAll(s)];
+
+// Piezas repetidas
+$("[data-strip]").forEach((el) => { el.innerHTML = (PHOTOS.map(img).join("")).repeat(2); });
+$("[data-dots]").forEach((el) => { el.innerHTML = Array.from({ length: 10 }, (_, k) => `<i class="${k < 7 ? "hit" : ""}" style="--k:${k}"></i>`).join(""); });
+$("[data-weeks]").forEach((el) => { el.innerHTML = Array.from({ length: 52 }, (_, k) => `<i style="--k:${k}"></i>`).join(""); });
+$("[data-plates]").forEach((el) => { el.innerHTML = Array.from({ length: 5 }, (_, k) => `<i style="--k:${k}"></i>`).join(""); });
+$("[data-group]").forEach((el) => { el.innerHTML = GROUPS[el.dataset.group].map((f, k) => img(f).replace("<img", `<img style="--k:${k}"`)).join(""); });
+$("[data-cards]").forEach((el) => { el.innerHTML = CARDS.map(([n, f], k) => `<div class="pcard pop" style="--dl:${1.4 + k * .25}s">${img(f)}<div class="nm">${n}</div><div class="pr"><span></span><i class="ar"></i></div></div>`).join(""); });
+$("[data-rows]").forEach((el) => {
+  let html = "";
+  for (let i = 0; i < 32; i++) {
+    const [p, m] = [SHEET[i % 16][0], SHEET[(i * 7 + 3) % 16][1]];
+    const mid = Math.round(900 + rnd(i, 1) * 7000), lo = Math.round(mid * (.9 - rnd(i, 2) * .06)), hi = Math.round(mid * (1.06 + rnd(i, 3) * .08));
+    html += `<div class="row"><span>${i + 2}</span><span>${p}</span><span>${m}</span><span>${lo.toLocaleString("es-CO")}</span><span>${hi.toLocaleString("es-CO")}</span><span>${mid.toLocaleString("es-CO")}</span></div>`;
+  }
+  el.innerHTML = html + html;
+});
+
+// Escenas y barra de ritmo
+const scenes = $(".scene");
+const D = scenes.map((s) => Number(s.dataset.d));
+const VIDEO = 7; // las primeras 7 escenas suman 3:00; la 8 es el cierre
+const starts = D.map((_, i) => D.slice(0, i).reduce((a, b) => a + b, 0));
+scenes.forEach((s, i) => {
+  s.dataset.i = i;
+  s.style.setProperty("--d", D[i]);
+  s.style.zIndex = i;
+  if (i < VIDEO) s.insertAdjacentHTML("beforeend", `<div class="pace">${D.slice(0, VIDEO).map((d, j) => `<i class="${j < i ? "done" : j === i ? "now" : ""}" style="flex:${d}"><b></b></i>`).join("")}</div>`);
+});
+
+const REC = new URLSearchParams(location.search).has("rec");
+let cur = -1, auto = false, timer = null;
+const began = [];
+
+function show(i, restart) {
+  i = Math.max(0, Math.min(scenes.length - 1, i));
+  scenes.forEach((s, j) => {
+    if (j > i || (restart && j === i)) s.classList.remove("on");
+    s.classList.toggle("vis", j === i || j === i - 1);
+  });
+  if (restart) void scenes[i].offsetWidth;
+  scenes.forEach((s, j) => { if (j <= i) s.classList.add("on"); });
+  cur = i;
+  began[i] = performance.now();
+  clearTimeout(timer);
+  if (auto && i < VIDEO - 1) timer = setTimeout(() => show(i + 1, true), D[i] * 1000);
+}
+
+// Números que cuentan y precios que saltan: dependen sólo del tiempo de la escena
+const counters = $("[data-count]").map((el) => ({ el, scene: el.closest(".scene"), from: Number(el.dataset.from || 0), to: Number(el.dataset.to), dec: Number(el.dataset.dec || 0) }));
+const prices = $(".pcard").map((el, k) => ({ el, k, txt: el.querySelector(".pr span"), ar: el.querySelector(".ar"), base: CARDS[k][2] }));
+const priceAt = (c, n) => n <= 0 ? c.base : Math.round(c.base * (1 + (rnd(c.k + 1, n) - .5) * .34) / 10) * 10;
+
+function update(local) {
+  for (const c of counters) {
+    if (!c.scene.classList.contains("vis")) continue;
+    const p = parseFloat(getComputedStyle(c.el).getPropertyValue("--p")) || 0;
+    const v = c.from + (c.to - c.from) * p;
+    const t = v.toLocaleString("es-CO", { minimumFractionDigits: c.dec, maximumFractionDigits: c.dec });
+    if (c.el.textContent !== t) c.el.textContent = t;
+  }
+  const t1 = local(1);
+  for (const c of prices) {
+    const period = 2.3, off = 3.5 + c.k * .41;
+    const n = Math.floor((t1 - off) / period), now = priceAt(c, n), before = priceAt(c, n - 1);
+    const age = n > 0 ? t1 - (off + n * period) : 9;
+    c.txt.textContent = "$" + now.toLocaleString("es-CO");
+    c.el.classList.toggle("up", n > 0 && now > before);
+    c.el.classList.toggle("down", n > 0 && now < before);
+    c.ar.textContent = now >= before ? "↑" : "↓";
+    c.txt.style.transform = `scale(${1 + .16 * Math.exp(-age * 5)})`;
+    c.txt.style.transformOrigin = "0 50%";
+  }
+}
+
+// Modo grabación: pone toda la animación en el segundo T
+window.seek = (T) => {
+  let i = 0;
+  while (i < scenes.length - 1 && T >= starts[i] + D[i]) i++;
+  if (i !== cur) show(i, false);
+  for (const a of document.getAnimations()) {
+    const s = a.effect && a.effect.target && a.effect.target.closest(".scene");
+    if (!s) continue;
+    a.pause();
+    a.currentTime = Math.max(0, (T - starts[Number(s.dataset.i)]) * 1000);
+  }
+  update((j) => T - starts[j]);
+  return i;
+};
+
+function fit() {
+  const k = Math.min(innerWidth / 1920, innerHeight / 1080);
+  const st = document.getElementById("stage");
+  st.style.transform = `scale(${k}) translate(-50%, -50%)`;
+}
+addEventListener("resize", fit);
+fit();
+
+if (REC) {
+  document.getElementById("hint").remove();
+  document.fonts.ready.then(() => { window.seek(0); window.ready = true; });
+} else {
+  const hint = document.getElementById("hint");
+  const say = (t) => { hint.textContent = t; hint.classList.remove("off"); clearTimeout(say.t); say.t = setTimeout(() => hint.classList.add("off"), 2500); };
+  say.t = setTimeout(() => hint.classList.add("off"), 6000);
+  show(0, true);
+  (function loop() { update((j) => (performance.now() - (began[j] || performance.now())) / 1000); requestAnimationFrame(loop); })();
+  const next = () => show(cur + 1, true), prev = () => show(cur - 1, true);
+  addEventListener("keydown", (e) => {
+    const k = e.key;
+    if (["ArrowRight", " ", "PageDown", "Enter"].includes(k)) { e.preventDefault(); next(); }
+    else if (["ArrowLeft", "PageUp", "Backspace"].includes(k)) { e.preventDefault(); prev(); }
+    else if (k === "Home") show(0, true);
+    else if (k === "End") show(scenes.length - 1, true);
+    else if (k >= "1" && k <= "8") show(Number(k) - 1, true);
+    else if (k.toLowerCase() === "f") { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); }
+    else if (k.toLowerCase() === "a") { auto = !auto; say(auto ? "Automático: avanza solo, 3:00 en total" : "Manual: avanza con →"); show(cur, true); }
+  });
+  addEventListener("click", next);
+  let idle;
+  addEventListener("mousemove", () => { document.body.classList.add("pointer"); clearTimeout(idle); idle = setTimeout(() => document.body.classList.remove("pointer"), 1500); });
+}
+</script>
+</body>
+</html>

@@ -56,6 +56,15 @@ function WhatsApp({ text, children }) {
   return <a className="btn wa" href={whatsapp(text)} target="_blank" rel="noopener noreferrer">{children}</a>;
 }
 
+// En la versión pública la lista de mercado se guarda en el navegador de cada persona
+const LIST_KEY = "agroprecio.lista";
+const local = {
+  on: false,
+  read() { try { return JSON.parse(localStorage.getItem(LIST_KEY)); } catch { return null; } },
+  write(body) { try { localStorage.setItem(LIST_KEY, JSON.stringify(body)); } catch { /* sin almacenamiento: la lista dura lo que dure la pestaña */ } },
+};
+const putList = (body) => api("/lista", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+
 async function api(path, options) {
   const res = await fetch(API + path, options);
   if (!res.ok) throw new Error(`${path}: ${res.status}`);
@@ -73,7 +82,10 @@ export default function App() {
 
   const load = () =>
     Promise.all([api("/alertas"), api("/boletin"), api("/modelo"), api("/lista"), api("/vigencia")])
-      .then(([a, b, m, l, v]) => {
+      .then(async ([a, b, m, l, v]) => {
+        local.on = !!v.publico;
+        const mine = local.on && local.read();
+        if (mine?.items?.length) l = await putList(mine);
         setAlerts(a);
         setBulletin(b);
         setModel(m.produccion);
@@ -166,7 +178,7 @@ function Status({ week, validity, onDone }) {
 
   useEffect(() => {
     // Si ya había una actualización corriendo (por ejemplo la automática), la seguimos
-    api("/actualizar").then((s) => { setJob(s); if (s.corriendo) poll(week); }).catch(() => {});
+    if (!validity?.publico) api("/actualizar").then((s) => { setJob(s); if (s.corriendo) poll(week); }).catch(() => {});
     return () => clearTimeout(timer.current);
   }, []);
 
@@ -193,14 +205,16 @@ function Status({ week, validity, onDone }) {
             <span className="long"> Úsala solo como referencia hasta que salga el boletín siguiente.</span>
           </p>
         ) : (
-          <p className="muted small">AgroPrecio busca el boletín nuevo cada sábado en la mañana.</p>
+          <p className="muted small">AgroPrecio busca el boletín nuevo cada {validity?.publico ? "miércoles y sábado" : "sábado en la mañana"}.</p>
         )}
         {running && <p className="muted small"><span className="spinner dark" /> Buscando en el DANE… {lastLine ?? ""}</p>}
         {!running && message && <p className={"small " + (message.ok ? "ok" : "error")}>{message.text}</p>}
       </div>
-      <button className="link refresh" onClick={start} disabled={running}>
-        {running ? "Buscando…" : "Buscar boletín nuevo"}
-      </button>
+      {!validity?.publico && (
+        <button className="link refresh" onClick={start} disabled={running}>
+          {running ? "Buscando…" : "Buscar boletín nuevo"}
+        </button>
+      )}
     </section>
   );
 }
@@ -271,7 +285,8 @@ function ShoppingList({ list, setList, byProduct, week, onPick }) {
     clearTimeout(timer.current);
     timer.current = setTimeout(async () => {
       const body = { restaurante: next.restaurante, items: next.items.map(({ producto, kg_semana }) => ({ producto, kg_semana: Number(kg_semana) || 0 })) };
-      const fresh = await api("/lista", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+      const fresh = await putList(body);
+      if (local.on) local.write(body);
       setList(fresh);
       setSaved(true);
     }, 500);

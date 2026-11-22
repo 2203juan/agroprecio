@@ -1,0 +1,13 @@
+.venv
+.git
+.env
+logs
+notebooks
+pitch
+docs
+data/bronze
+data/silver
+frontend/node_modules
+frontend/dist
+**/__pycache__
+.pytest_cache

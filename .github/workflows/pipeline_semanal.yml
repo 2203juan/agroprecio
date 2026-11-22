@@ -3,10 +3,34 @@ name: Pipeline semanal
 # El DANE publica el boletín los viernes, pero a veces con rezago: corremos sábado y miércoles
 # a las 8 a.m. (hora Colombia). Además, GitHub borra las cachés que pasan 7 días sin uso; con
 # una sola corrida por semana se podría perder el historial de predicciones.
+# Al terminar publica la imagen de la nube (página + API + datos) y, si Azure está
+# configurado, la despliega. Por eso también corre cuando cambia el código que va en ella.
 on:
   schedule:
     - cron: "0 13 * * 3,6"
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - api/**
+      - src/**
+      - config/**
+      - frontend/**
+      - main.py
+      - requirements*.txt
+      - Dockerfile.nube*
+      - .github/workflows/pipeline_semanal.yml
+
+# Una corrida a la vez: dos seguidas pisarían el estado guardado y el despliegue
+concurrency: pipeline-semanal
+
+permissions:
+  contents: read
+  packages: write   # publicar la imagen en ghcr.io
+
+env:
+  IMAGE: ghcr.io/${{ github.repository }}
+  AZURE_WEBHOOK: ${{ secrets.AZURE_WEBHOOK }}
 
 jobs:
   pipeline:
@@ -50,3 +74,26 @@ jobs:
             data/gold/agroprecio.db
             models/registry.json
             logs/
+
+      - name: Entrar al registro de GitHub
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Construir y publicar la imagen de la nube
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: Dockerfile.nube
+          push: true
+          tags: |
+            ${{ env.IMAGE }}:latest
+            ${{ env.IMAGE }}:${{ github.run_number }}
+
+      # Solo si se configuró Azure (ver docs/10_despliegue_azure.md): App Service descarga
+      # la imagen nueva y reinicia el contenedor
+      - name: Avisar a Azure que hay imagen nueva
+        if: env.AZURE_WEBHOOK != ''
+        run: curl -fsS -X POST "$AZURE_WEBHOOK" -H "Content-Length: 0"

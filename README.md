@@ -220,9 +220,10 @@ Detalle en [docs/05_operacion.md](docs/05_operacion.md).
 7. [Validación con restaurantes](docs/07_validacion.md)
 8. [Guion del pitch](docs/08_pitch.md)
 9. [Experimentos del modelo](docs/09_experimentos.md)
-10. [Model card](docs/model_card.md)
-11. [Diccionario de datos](docs/diccionario_datos.md)
-12. [Historial de versiones](CHANGELOG.md)
+10. [Despliegue en Azure](docs/10_despliegue_azure.md)
+11. [Model card](docs/model_card.md)
+12. [Diccionario de datos](docs/diccionario_datos.md)
+13. [Historial de versiones](CHANGELOG.md)
 
 ## Fuente de datos
 

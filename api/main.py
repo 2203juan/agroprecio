@@ -18,11 +18,16 @@ from src.lista import cost_list, normalize_items
 from src.model.metrics import classification_metrics, evaluate_version
 from src.model.train import evaluated_model
 from src.load.load_database import query, read_table, save_table
-from src.opiniones import MAX_COMMENT, new_opinion, summarize
+from src.opiniones import MAX_COMMENT, keep_opinion, new_opinion, restore_opinions, summarize
 from src.vigencia import freshness
 
 CONFIG = yaml.safe_load(open(os.getenv("AGRO_CONFIG", "config/config.yaml"), encoding="utf-8"))
 DB = CONFIG["paths"]["database"]
+# En la nube la página es de todos: la lista vive en el navegador de cada persona y el
+# pipeline no se lanza desde aquí, porque los datos llegan con la imagen.
+PUBLIC = os.getenv("AGRO_PUBLICO") == "1"
+# Carpeta que sobrevive a los reinicios del contenedor (un volumen), para las opiniones
+STATE = os.getenv("AGRO_ESTADO")
 
 app = FastAPI(title="AgroPrecio API", version="0.6.0")
 app.add_middleware(CORSMiddleware, allow_origins=["*"], allow_methods=["GET", "POST", "PUT"], allow_headers=["*"])
@@ -36,7 +41,10 @@ def last_run():
     return df["fecha"].max()[:10] if len(df) else None
 
 
-if CONFIG.get("update", {}).get("auto"):
+if STATE:
+    restore_opinions(STATE, DB)
+
+if CONFIG.get("update", {}).get("auto") and not PUBLIC:
     actualizar.schedule(CONFIG["update"]["weekday"], CONFIG["update"]["hour"], last_run)
 
 
@@ -76,7 +84,7 @@ def validity():
     df = read_table("alertas", DB)
     if df.empty:
         raise HTTPException(404, "Todavía no hay alertas")
-    return freshness(df["semana_inicio"].iloc[0])
+    return {**freshness(df["semana_inicio"].iloc[0]), "publico": PUBLIC}
 
 
 @app.get("/boletin")
@@ -123,17 +131,27 @@ def read_list():
     return name, df[["producto", "kg_semana"]] if len(df) else pd.DataFrame(columns=["producto", "kg_semana"])
 
 
-@app.get("/lista")
-def get_list():
-    name, items = read_list()
+def costed(name, items):
     rows, totals = cost_list(items, query("SELECT * FROM alertas", DB))
     return {"restaurante": name, "items": records(rows), "totales": totals}
 
 
+@app.get("/lista")
+def get_list():
+    if PUBLIC:
+        return costed("Mi restaurante", pd.DataFrame(columns=["producto", "kg_semana"]))
+    return costed(*read_list())
+
+
 @app.put("/lista")
 def put_list(lista: Lista):
+    """Guarda la lista y la devuelve con sus costos. En la nube solo calcula los costos:
+    la lista la guarda el navegador de cada persona."""
+    name = lista.restaurante.strip() or "Mi restaurante"
     items = normalize_items([i.model_dump() for i in lista.items], CONFIG["products"])
-    save_table(items.assign(restaurante=lista.restaurante.strip() or "Mi restaurante"), "listas", DB)
+    if PUBLIC:
+        return costed(name, items)
+    save_table(items.assign(restaurante=name), "listas", DB)
     return get_list()
 
 
@@ -157,6 +175,8 @@ def post_opinion(opinion: Opinion):
         raise HTTPException(404, "Todavía no hay una recomendación para calificar")
     row = new_opinion(opinion.util, alerts["semana_inicio"].iloc[0], opinion.restaurante, opinion.comentario)
     save_table(row, "opiniones", DB, mode="append")
+    if STATE:
+        keep_opinion(row, STATE)
     return get_opinions()
 
 
@@ -164,6 +184,8 @@ def post_opinion(opinion: Opinion):
 
 @app.post("/actualizar")
 def update():
+    if PUBLIC:
+        raise HTTPException(403, "En esta versión el boletín se actualiza solo")
     started = actualizar.start()
     return {"iniciado": started, **actualizar.status()}
 

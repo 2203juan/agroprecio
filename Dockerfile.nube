@@ -1,0 +1,26 @@
+# Imagen única para la nube: página, API, base de datos y modelo.
+# Se construye desde la raíz, después de correr el pipeline:
+#   docker build -f Dockerfile.nube -t agroprecio .
+FROM node:22-alpine AS web
+WORKDIR /web
+COPY frontend/package.json frontend/package-lock.json ./
+RUN npm ci
+COPY frontend .
+RUN npm run build
+
+FROM python:3.12-slim
+WORKDIR /app
+COPY requirements-web.txt .
+RUN pip install --no-cache-dir -r requirements-web.txt
+
+COPY config ./config
+COPY src ./src
+COPY api ./api
+# Los datos viajan con la imagen: el contenedor no guarda nada entre reinicios
+COPY data/gold/agroprecio.db ./data/gold/agroprecio.db
+COPY models ./models
+COPY --from=web /web/dist ./web
+
+ENV AGRO_PUBLICO=1 TZ=America/Bogota
+EXPOSE 8000
+CMD ["uvicorn", "api.publico:app", "--host", "0.0.0.0", "--port", "8000"]
