@@ -5,12 +5,14 @@ import {
 
 const API = "/api";
 
-// Qué hacer según la predicción para la próxima semana
+// Qué hacer según la predicción. El color y el icono son solo de la acción:
+// el cambio de la semana pasada va en gris para no confundirlos
 const ACTION = {
-  sube: { text: "Compra ya", hint: "se espera que suba", className: "chip sube" },
-  baja: { text: "Espera", hint: "se espera que baje", className: "chip baja" },
-  estable: { text: "Normal", hint: "sin cambio importante", className: "chip estable" },
+  sube: { text: "Compra ya", icon: "🛒", why: "se espera que suba", className: "chip ya" },
+  baja: { text: "Espera", icon: "⏳", why: "se espera que baje", className: "chip espera" },
+  estable: { text: "Como siempre", icon: "👌", why: "no se espera un cambio importante", className: "chip normal" },
 };
+const ORDER = ["sube", "baja", "estable"];
 
 const ICONS = {
   "Aguacate papelillo": "🥑", "Ahuyama": "🎃", "Cebolla cabezona blanca bogotana": "🧅",
@@ -28,14 +30,24 @@ const EXAMPLE_LIST = [
 ].map(([producto, kg_semana]) => ({ producto, kg_semana }));
 
 const pesos = (n) => "$" + Math.round(n).toLocaleString("es-CO");
-const pct = (n) => Math.round(Math.abs(n) * 100) + "%";
+const pct = (n) => Math.round(Math.abs(n) * 100) + " %";
 const day = (d, opts = { day: "numeric", month: "short" }) =>
   new Date(d.slice(0, 10) + "T12:00:00").toLocaleDateString("es-CO", opts);
+// "7 al 13 de nov": no repite el mes cuando es el mismo
+const span = (a, b, opts) => `${a.slice(0, 7) === b.slice(0, 7) ? Number(a.slice(8, 10)) : day(a)} al ${day(b, opts)}`;
 const addDays = (d, n) => {
   const x = new Date(d.slice(0, 10) + "T12:00:00");
   x.setDate(x.getDate() + n);
   return x.toISOString().slice(0, 10);
 };
+
+// Sin tildes ni mayúsculas, para buscar "limon" y encontrar "Limón"
+const plain = (text) => text.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+const whatsapp = (text) => "https://wa.me/?text=" + encodeURIComponent(text);
+
+function WhatsApp({ text, children }) {
+  return <a className="btn wa" href={whatsapp(text)} target="_blank" rel="noopener noreferrer">{children}</a>;
+}
 
 async function api(path, options) {
   const res = await fetch(API + path, options);
@@ -49,16 +61,17 @@ export default function App() {
   const [model, setModel] = useState(null);
   const [list, setList] = useState(null);
   const [product, setProduct] = useState(null);
+  const [validity, setValidity] = useState(null);
   const [error, setError] = useState(null);
 
   const load = () =>
-    Promise.all([api("/alertas"), api("/boletin"), api("/modelo"), api("/lista")])
-      .then(([a, b, m, l]) => {
+    Promise.all([api("/alertas"), api("/boletin"), api("/modelo"), api("/lista"), api("/vigencia")])
+      .then(([a, b, m, l, v]) => {
         setAlerts(a);
         setBulletin(b);
         setModel(m.produccion);
         setList(l);
-        setProduct((p) => p ?? a[0]?.producto);
+        setValidity(v);
         return a;
       })
       .catch((e) => setError(e.message));
@@ -70,27 +83,36 @@ export default function App() {
 
   const week = alerts[0].semana_inicio;
   const byProduct = Object.fromEntries(alerts.map((a) => [a.producto, a]));
+  // Semana para la que vale la recomendación
+  const target = {
+    start: validity?.recomendacion_inicio ?? addDays(week, 7),
+    end: validity?.recomendacion_fin ?? addDays(week, 13),
+    expired: !!validity?.vencida,
+  };
 
   return (
     <Shell>
-      <UpdateBar week={week} onDone={load} />
+      <Status week={week} validity={validity} onDone={load} />
+      <Summary alerts={alerts} list={list} target={target} onPick={setProduct} />
 
       <section className="layout">
-        <ShoppingList list={list} setList={setList} byProduct={byProduct} onPick={setProduct} />
+        <ShoppingList list={list} setList={setList} byProduct={byProduct} week={week} onPick={setProduct} />
         <aside className="side">
-          <Totals totals={list.totales} hasItems={list.items.length > 0} />
-          <Bulletin bulletin={bulletin} />
+          <Totals list={list} week={week} target={target} />
+          <Feedback week={week} restaurant={list.restaurante} />
+          <Bulletin bulletin={bulletin} alerts={alerts} onPick={setProduct} />
         </aside>
       </section>
 
-      <Board alerts={alerts} week={week} selected={product} onPick={setProduct} />
-      {product && <ProductDetail alert={byProduct[product]} />}
+      <Board alerts={alerts} week={week} onPick={setProduct} />
 
       <PhotoBand />
       <footer className="muted small">
         Precios mayoristas de la central Cavasa (Cali) publicados por el SIPSA – DANE, en pesos por kilo.
         Las proyecciones son estimaciones{model ? ` del modelo ${model.version}` : ""}: el precio real puede cambiar.
       </footer>
+
+      <DetailDialog alert={product ? byProduct[product] : null} onClose={() => setProduct(null)} />
     </Shell>
   );
 }
@@ -117,10 +139,6 @@ function Shell({ children }) {
             <p>Qué comprar esta semana en Cavasa</p>
           </div>
           <p className="tagline">Precios de la plaza para tu cocina · Cali</p>
-          <p className="hero-text">
-            Cada semana leemos el boletín de precios mayoristas del DANE y te decimos qué conviene comprar ya,
-            qué puedes esperar y cuánto te va a costar el mercado.
-          </p>
         </div>
       </header>
       <main className="page">{children}</main>
@@ -134,15 +152,15 @@ function PhotoBand() {
       <Bunting />
       <div className="band-content">
         <p className="band-title">De la plaza a tu cocina</p>
-        <p>Frutas, verduras y tubérculos de Cavasa, con precios que se actualizan cada semana.</p>
+        <p>Cada semana leemos el boletín de precios mayoristas del DANE y te decimos qué conviene comprar ya, qué puedes esperar y cuánto te va a costar el mercado.</p>
       </div>
     </section>
   );
 }
 
-// ---------- Actualización con el boletín nuevo del DANE ----------
+// ---------- De cuándo son los precios, y si la recomendación sigue vigente ----------
 
-function UpdateBar({ week, onDone }) {
+function Status({ week, validity, onDone }) {
   const [job, setJob] = useState(null);
   const [message, setMessage] = useState(null);
   const timer = useRef(null);
@@ -157,7 +175,7 @@ function UpdateBar({ week, onDone }) {
       const newWeek = fresh?.[0]?.semana_inicio;
       setMessage(newWeek && newWeek !== weekBefore
         ? { ok: true, text: `¡Llegó el boletín nuevo! Ya ves la semana del ${day(newWeek)}.` }
-        : { ok: true, text: "Todavía no hay boletín nuevo del DANE. Los precios siguen siendo los más recientes." });
+        : { ok: true, text: "El DANE todavía no ha publicado un boletín nuevo." });
     }, 2000);
   };
 
@@ -175,33 +193,86 @@ function UpdateBar({ week, onDone }) {
 
   const running = job?.corriendo;
   const lastLine = job?.ultimas_lineas?.at(-1)?.replace(/^\S+ \S+ \w+ /, "");
+  const expired = validity?.vencida;
 
   return (
-    <section className="update">
-      <div>
+    <section className={"status" + (expired ? " expired" : "")} role="status">
+      <div className="status-text">
         <p className="week">
-          Precios de la semana del <strong>{day(week)}</strong> al <strong>{day(addDays(week, 6), { day: "numeric", month: "short", year: "numeric" })}</strong>
+          Precios del <strong>{span(week.slice(0, 10), addDays(week, 6), { day: "numeric", month: "short", year: "numeric" })}</strong>
+          <span className="muted"> · último boletín del DANE</span>
         </p>
+        {expired ? (
+          <p>
+            <strong><span aria-hidden="true">⚠️</span> Recomendación vencida.</strong> Era para la semana del {span(validity.recomendacion_inicio, validity.recomendacion_fin)}.
+            Úsala solo como referencia hasta que salga el boletín siguiente.
+          </p>
+        ) : (
+          <p className="muted small">AgroPrecio busca el boletín nuevo cada sábado en la mañana.</p>
+        )}
+        {running && <p className="muted small"><span className="spinner dark" /> Buscando en el DANE… {lastLine ?? ""}</p>}
+        {!running && message && <p className={"small " + (message.ok ? "ok" : "error")}>{message.text}</p>}
+      </div>
+      <button className="link refresh" onClick={start} disabled={running}>
+        {running ? "Buscando…" : "Buscar boletín nuevo"}
+      </button>
+    </section>
+  );
+}
+
+// ---------- La respuesta, arriba: qué comprar ya y qué esperar ----------
+
+function Summary({ alerts, list, target, onPick }) {
+  const mine = list.items.length > 0;
+  const source = mine ? list.items : alerts;
+  return (
+    <section className="summary" aria-label="Resumen de la semana">
+      <div className="summary-head">
+        <h2>{mine ? "Tu lista de un vistazo" : "La plaza de un vistazo"}</h2>
         <p className="muted small">
-          {running ? `Buscando en el DANE… ${lastLine ?? ""}`
-            : message ? <span className={message.ok ? "ok" : "error"}>{message.text}</span>
-            : "AgroPrecio revisa solo cada sábado en la mañana si el DANE publicó un boletín nuevo."}
+          Recomendación para la semana del {span(target.start, target.end)}{target.expired ? " (ya pasó)" : ""}
         </p>
       </div>
-      <button className="btn" onClick={start} disabled={running}>
-        {running ? <><span className="spinner" /> Actualizando…</> : "Buscar boletín nuevo"}
-      </button>
+      <div className="summary-grid">
+        {ORDER.map((k) => {
+          const items = source.filter((a) => a.prediccion === k);
+          return (
+            <div key={k} className={"sum " + k}>
+              <p className="sum-title">
+                <span className="sum-count">{items.length}</span>
+                <span><span aria-hidden="true">{ACTION[k].icon}</span> {ACTION[k].text}</span>
+              </p>
+              <p className="sum-names">
+                {items.length === 0 ? <span className="muted">Ninguno esta semana</span> : items.map((a, i) => (
+                  <span key={a.producto}>
+                    <button className="name-link" onClick={() => onPick(a.producto)}>{a.producto}</button>
+                    {i < items.length - 1 ? ", " : ""}
+                  </span>
+                ))}
+              </p>
+            </div>
+          );
+        })}
+      </div>
+      {mine && (
+        <p className="summary-total">
+          Tu mercado siguiendo la recomendación: <strong>{pesos(list.totales.costo_recomendado)}</strong>
+        </p>
+      )}
     </section>
   );
 }
 
 // ---------- Lista de mercado ----------
 
-function ShoppingList({ list, setList, byProduct, onPick }) {
+function ShoppingList({ list, setList, byProduct, week, onPick }) {
   const [draft, setDraft] = useState({ restaurante: list.restaurante, items: list.items });
   const [saved, setSaved] = useState(true);
-  const [adding, setAdding] = useState("");
+  const [query, setQuery] = useState("");
+  const [searching, setSearching] = useState(false);
+  const [removed, setRemoved] = useState(null);
   const timer = useRef(null);
+  const undoTimer = useRef(null);
 
   const save = (next) => {
     setDraft(next);
@@ -217,15 +288,32 @@ function ShoppingList({ list, setList, byProduct, onPick }) {
 
   const setKg = (producto, kg) =>
     save({ ...draft, items: draft.items.map((i) => (i.producto === producto ? { ...i, kg_semana: kg } : i)) });
-  const remove = (producto) => save({ ...draft, items: draft.items.filter((i) => i.producto !== producto) });
-  const add = () => {
-    if (!adding) return;
-    save({ ...draft, items: [...draft.items, { producto: adding, kg_semana: 1 }] });
-    setAdding("");
+
+  const remove = (producto) => {
+    const index = draft.items.findIndex((i) => i.producto === producto);
+    setRemoved({ item: draft.items[index], index });
+    clearTimeout(undoTimer.current);
+    undoTimer.current = setTimeout(() => setRemoved(null), 7000);
+    save({ ...draft, items: draft.items.filter((i) => i.producto !== producto) });
   };
+  const undo = () => {
+    if (!removed || draft.items.some((i) => i.producto === removed.item.producto)) return setRemoved(null);
+    const items = [...draft.items];
+    items.splice(removed.index, 0, removed.item);
+    save({ ...draft, items });
+    setRemoved(null);
+  };
+  const add = (producto) => {
+    save({ ...draft, items: [...draft.items, { producto, kg_semana: 1 }] });
+    setQuery("");
+  };
+
+  useEffect(() => () => clearTimeout(undoTimer.current), []);
 
   const costs = Object.fromEntries(list.items.map((i) => [i.producto, i]));
   const missing = Object.keys(byProduct).filter((p) => !draft.items.some((i) => i.producto === p)).sort();
+  const lastDay = day(addDays(week, 6));
+  const matches = missing.filter((p) => plain(p).includes(plain(query.trim())));
 
   return (
     <div className="card list">
@@ -248,90 +336,123 @@ function ShoppingList({ list, setList, byProduct, onPick }) {
           <button className="btn" onClick={() => save({ ...draft, items: EXAMPLE_LIST })}>Usar una lista de ejemplo</button>
         </div>
       ) : (
-        <div className="scroll">
-          <table>
-            <thead>
-              <tr>
-                <th>Producto</th><th>Kilos / semana</th><th>Hoy / kg</th><th>Próx. semana / kg</th>
-                <th>Qué hacer</th><th title="Cuántas veces acertó el modelo con este producto en las últimas semanas">¿Le atina?</th>
-                <th className="num">Costo hoy</th><th />
-              </tr>
-            </thead>
-            <tbody>
-              {draft.items.map((item) => {
-                const a = byProduct[item.producto];
-                const c = costs[item.producto];
-                return (
-                  <tr key={item.producto} onClick={() => onPick(item.producto)}>
-                    <td><span className="icon" aria-hidden="true">{ICONS[item.producto]}</span>{item.producto}</td>
-                    <td onClick={(e) => e.stopPropagation()}>
-                      <input type="number" min="0" step="0.5" className="kg" value={item.kg_semana}
-                        onChange={(e) => setKg(item.producto, e.target.value)} aria-label={`Kilos de ${item.producto}`} />
-                    </td>
-                    <td className="num">{pesos(a.precio)}</td>
-                    <td className="num range">{pesos(a.precio_min_esperado)} – {pesos(a.precio_max_esperado)}</td>
-                    <td><span className={ACTION[a.prediccion].className}>{ACTION[a.prediccion].text}</span></td>
-                    <td><Hits a={a} /></td>
-                    <td className="num">{c ? pesos(c.costo_hoy) : "…"}</td>
-                    <td onClick={(e) => e.stopPropagation()}>
-                      <button className="remove" onClick={() => remove(item.producto)} aria-label={`Quitar ${item.producto}`}>×</button>
-                    </td>
-                  </tr>
-                );
-              })}
-            </tbody>
-          </table>
-        </div>
+        <ul className="items">
+          {draft.items.map((item) => {
+            const a = byProduct[item.producto];
+            const c = costs[item.producto];
+            const action = ACTION[a.prediccion];
+            return (
+              <li key={item.producto} className="item">
+                <button className="item-name" onClick={() => onPick(item.producto)} title="Ver cómo ha cambiado el precio">
+                  <span className="icon" aria-hidden="true">{ICONS[item.producto]}</span>
+                  <span>{item.producto}</span>
+                  <span className="more" aria-hidden="true">›</span>
+                </button>
+                <span className={"item-action " + action.className}><span aria-hidden="true">{action.icon}</span> {action.text}</span>
+                <dl className="item-prices">
+                  <div><dt>Último ({lastDay})</dt><dd>{pesos(a.precio)}/kg</dd></div>
+                  <div><dt>Próxima semana</dt><dd>{pesos(a.precio_min_esperado)} – {pesos(a.precio_max_esperado)}</dd></div>
+                  <div className="hit" title="Semanas en que la recomendación de este producto resultó correcta">
+                    <dt>Ha acertado</dt><dd>{a.evaluadas ? `${a.aciertos} de ${a.evaluadas} veces` : "sin historial"}</dd>
+                  </div>
+                </dl>
+                <Stepper value={item.kg_semana} label={item.producto} onChange={(kg) => setKg(item.producto, kg)} />
+                <div className="item-cost">
+                  <span className="label">Costo</span>
+                  <strong>{c ? pesos(c.costo_hoy) : "…"}</strong>
+                </div>
+                <button className="remove" onClick={() => remove(item.producto)} aria-label={`Quitar ${item.producto}`}>×</button>
+              </li>
+            );
+          })}
+        </ul>
       )}
 
       {missing.length > 0 && (
         <div className="add">
-          <select value={adding} onChange={(e) => setAdding(e.target.value)} aria-label="Producto para agregar">
-            <option value="">Agregar un producto…</option>
-            {missing.map((p) => <option key={p} value={p}>{ICONS[p]} {p}</option>)}
-          </select>
-          <button className="btn small-btn" onClick={add} disabled={!adding}>Agregar</button>
+          <input type="search" value={query} placeholder="Buscar un producto para agregar…" aria-label="Buscar un producto para agregar"
+            onChange={(e) => setQuery(e.target.value)} onFocus={() => setSearching(true)} onBlur={() => setSearching(false)}
+            onKeyDown={(e) => { if (e.key === "Enter" && matches.length) add(matches[0]); if (e.key === "Escape") e.target.blur(); }} />
+          {(searching || query) && (
+            <ul className="suggest" aria-label="Productos para agregar">
+              {matches.length === 0 && <li className="muted none">No hay un producto con ese nombre en Cavasa.</li>}
+              {matches.map((p) => (
+                <li key={p}>
+                  {/* onMouseDown evita que el buscador pierda el foco antes del clic */}
+                  <button onMouseDown={(e) => e.preventDefault()} onClick={() => add(p)}>
+                    <span aria-hidden="true">{ICONS[p]}</span> {p} <span className="plus" aria-hidden="true">+ Agregar</span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      )}
+
+      {removed && (
+        <div className="toast" role="status">
+          <span>Quitaste {removed.item.producto}</span>
+          <button onClick={undo}>Deshacer</button>
         </div>
       )}
     </div>
   );
 }
 
-function Hits({ a }) {
-  if (!a.evaluadas) return <span className="muted small">sin datos</span>;
+function Stepper({ value, label, onChange }) {
+  const n = Number(value) || 0;
+  const clean = (text) => text.replace(",", ".").replace(/[^\d.]/g, "");
   return (
-    <span className="hits" title={`Acertó ${a.aciertos} de las últimas ${a.evaluadas} semanas`}>
-      {Array.from({ length: a.evaluadas }, (_, i) => <i key={i} className={i < a.aciertos ? "on" : ""} />)}
-      <span className="small">{a.aciertos}/{a.evaluadas}</span>
-    </span>
+    <div className="stepper">
+      <button onClick={() => onChange(Math.max(0, n - 1))} disabled={n <= 0} aria-label={`Un kilo menos de ${label}`}>−</button>
+      <label>
+        <input type="text" inputMode="decimal" value={value} onChange={(e) => onChange(clean(e.target.value))}
+          onFocus={(e) => e.target.select()} aria-label={`Kilos de ${label} por semana`} />
+        <span aria-hidden="true">kg</span>
+      </label>
+      <button onClick={() => onChange(n + 1)} aria-label={`Un kilo más de ${label}`}>+</button>
+    </div>
   );
 }
 
-function Totals({ totals, hasItems }) {
-  if (!hasItems) return null;
+function Totals({ list, week, target }) {
+  const totals = list.totales;
+  if (!list.items.length) return null;
   const vsToday = totals.costo_hoy - totals.costo_recomendado;
   const vsNext = totals.costo_proxima - totals.costo_recomendado;
+  const lines = ORDER.map((k) => {
+    const items = list.items.filter((i) => i.prediccion === k);
+    return items.length ? `${ACTION[k].icon} *${ACTION[k].text}:* ${items.map((i) => `${i.producto} (${i.kg_semana} kg)`).join(", ")}` : null;
+  }).filter(Boolean);
+  const message = [
+    `*Mercado de ${list.restaurante}* · precios de Cavasa al ${day(addDays(week, 6))}`,
+    ...lines,
+    `Total siguiendo la recomendación: ${pesos(totals.costo_recomendado)}`,
+    target.expired ? `Ojo: la recomendación era para la semana del ${span(target.start, target.end)}.` : `Recomendación para la semana del ${span(target.start, target.end)}.`,
+    "Son estimaciones de AgroPrecio con datos del SIPSA - DANE.",
+  ].join("\n");
   return (
     <div className="card totals">
       <div className="cover" role="img" aria-label="Puesto de verduras en una plaza de mercado" />
       <h2>Tu mercado de la semana</h2>
       <div className="total main">
-        <span>Siguiendo AgroPrecio</span>
+        <span>Siguiendo la recomendación</span>
         <strong>{pesos(totals.costo_recomendado)}</strong>
       </div>
-      <div className="total"><span>Si compras todo hoy</span><span>{pesos(totals.costo_hoy)}</span></div>
-      <div className="total"><span>Si esperas todo a la próxima semana</span><span>≈ {pesos(totals.costo_proxima)}</span></div>
+      <div className="total"><span>Si compras todo ya</span><span>{pesos(totals.costo_hoy)}</span></div>
+      <div className="total"><span>Si esperas todo una semana</span><span>≈ {pesos(totals.costo_proxima)}</span></div>
       <p className="small saving">
-        {vsNext > 0 && <>Te ahorras cerca de <strong>{pesos(vsNext)}</strong> frente a esperar todo. </>}
-        {vsToday > 0 && <>Y <strong>{pesos(vsToday)}</strong> frente a comprar todo hoy.</>}
+        {vsNext > 0 && <>Si las predicciones se cumplen, te ahorras cerca de <strong>{pesos(vsNext)}</strong> frente a esperar todo. </>}
+        {vsToday > 0 && <>Y <strong>{pesos(vsToday)}</strong> frente a comprar todo ya.</>}
         {vsNext <= 0 && vsToday <= 0 && "Esta semana no hay mucha diferencia: compra como de costumbre."}
       </p>
-      <p className="muted small">Lo que sube se compra hoy, lo que baja se deja para la próxima semana y lo estable como siempre.</p>
+      <p className="muted small">Lo que va a subir se compra ya, lo que va a bajar se deja para la otra semana y el resto como siempre.</p>
+      <WhatsApp text={message}>Enviar mi lista por WhatsApp</WhatsApp>
     </div>
   );
 }
 
-function Bulletin({ bulletin }) {
+function Bulletin({ bulletin, alerts, onPick }) {
   const [copied, setCopied] = useState(false);
   if (!bulletin?.texto) return null;
   const copy = async () => {
@@ -341,82 +462,191 @@ function Bulletin({ bulletin }) {
   };
   return (
     <div className="card note">
-      <div className="card-head">
-        <h2>El boletín de la semana</h2>
-        <button className="link" onClick={copy}>{copied ? "Copiado ✓" : "Copiar"}</button>
+      <h2>El boletín de la semana</h2>
+      <p className="muted small">Los {alerts.length} productos que seguimos en Cavasa.</p>
+      {ORDER.map((k) => {
+        const items = alerts.filter((a) => a.prediccion === k);
+        if (!items.length) return null;
+        return (
+          <div key={k} className="group">
+            <h3><span aria-hidden="true">{ACTION[k].icon}</span> {ACTION[k].text} <span className="muted">· {ACTION[k].why}</span></h3>
+            <p>
+              {items.map((a, i) => (
+                <span key={a.producto}>
+                  <button className="name-link" onClick={() => onPick(a.producto)}>{a.producto}</button>{i < items.length - 1 ? ", " : ""}
+                </span>
+              ))}
+            </p>
+          </div>
+        );
+      })}
+      <details>
+        <summary>Leer el texto para enviar</summary>
+        <p className="bulletin">{bulletin.texto}</p>
+        <p className="muted small">Redactado con {bulletin.fuente === "claude" ? "Claude" : "la plantilla de AgroPrecio"}.</p>
+      </details>
+      <div className="share">
+        <WhatsApp text={bulletin.texto}>Enviar por WhatsApp</WhatsApp>
+        <button className="link" onClick={copy}>{copied ? "Copiado ✓" : "Copiar texto"}</button>
       </div>
-      <p className="bulletin">{bulletin.texto}</p>
-      <p className="muted small">Redactado con {bulletin.fuente === "claude" ? "Claude" : "la plantilla de AgroPrecio"}.</p>
+    </div>
+  );
+}
+
+// ---------- ¿Te sirvió? ----------
+
+function Feedback({ week, restaurant }) {
+  const key = `opinion-${week}`;
+  const [sent, setSent] = useState(() => { try { return !!localStorage.getItem(key); } catch { return false; } });
+  const [comment, setComment] = useState("");
+  const [error, setError] = useState(null);
+
+  const send = async (util) => {
+    setError(null);
+    try {
+      await api("/opiniones", {
+        method: "POST", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ util, restaurante: restaurant, comentario: comment }),
+      });
+      setSent(true);
+      try { localStorage.setItem(key, "1"); } catch { /* sin almacenamiento: solo se puede repetir */ }
+    } catch {
+      setError("No se pudo guardar tu respuesta. Intenta otra vez.");
+    }
+  };
+
+  return (
+    <div className="card feedback">
+      <h2>¿Te sirvió esta semana?</h2>
+      {sent ? <p className="ok">¡Gracias! Tu respuesta quedó guardada.</p> : (
+        <>
+          <input value={comment} maxLength={300} onChange={(e) => setComment(e.target.value)}
+            placeholder="¿Qué compraste distinto? (opcional)" aria-label="Comentario opcional" />
+          <div className="feedback-buttons">
+            <button className="btn" onClick={() => send(true)}>👍 Sí</button>
+            <button className="btn plain" onClick={() => send(false)}>👎 No</button>
+          </div>
+          <p className="muted small">Se guarda con el nombre de tu restaurante. No escribas datos personales.</p>
+          {error && <p className="error small">{error}</p>}
+        </>
+      )}
     </div>
   );
 }
 
 // ---------- Pizarra con los 20 productos ----------
 
-function Board({ alerts, week, selected, onPick }) {
+function Board({ alerts, week, onPick }) {
+  const [filter, setFilter] = useState(null);
+  const [all, setAll] = useState(false);
+  const shown = filter ? alerts.filter((a) => a.prediccion === filter) : alerts;
+  const count = (k) => alerts.filter((a) => a.prediccion === k).length;
   return (
     <section className="board" aria-label="Pizarra de precios">
-      <h2>Pizarra de Cavasa · semana del {day(week)}</h2>
-      <div className="board-grid">
-        {alerts.map((a) => (
-          <button key={a.producto} className={"slot" + (a.producto === selected ? " selected" : "")} onClick={() => onPick(a.producto)}>
-            <span className="slot-name"><span aria-hidden="true">{ICONS[a.producto]}</span> {a.producto}</span>
-            <span className="price">{pesos(a.precio)}<small>/kg</small></span>
-            <span className={"change " + (a.cambio_1s > 0 ? "up" : "down")}>
-              {a.cambio_1s > 0 ? "▲" : "▼"} {pct(a.cambio_1s)} vs. semana pasada
-            </span>
-            <span className={ACTION[a.prediccion].className}>Próx.: {ACTION[a.prediccion].hint}</span>
+      <h2>Pizarra de Cavasa · precios al {day(addDays(week, 6))}</h2>
+      <div className="filters" role="group" aria-label="Filtrar por recomendación">
+        <button className="filter" aria-pressed={filter === null} onClick={() => setFilter(null)}>Todos ({alerts.length})</button>
+        {ORDER.map((k) => (
+          <button key={k} className="filter" aria-pressed={filter === k} onClick={() => setFilter(filter === k ? null : k)}>
+            <span aria-hidden="true">{ACTION[k].icon}</span> {ACTION[k].text} ({count(k)})
           </button>
         ))}
       </div>
+      <div className={"board-grid" + (all || filter ? " all" : "")}>
+        {shown.map((a) => (
+          <button key={a.producto} className="slot" onClick={() => onPick(a.producto)}>
+            <span className="slot-name"><span aria-hidden="true">{ICONS[a.producto]}</span> {a.producto}</span>
+            <span className="price">{pesos(a.precio)}<small>/kg</small></span>
+            <span className="change">
+              {a.cambio_1s > 0 ? "▲ Subió" : "▼ Bajó"} {pct(a.cambio_1s)} en la semana
+            </span>
+            <span className={ACTION[a.prediccion].className}>
+              <span aria-hidden="true">{ACTION[a.prediccion].icon}</span> {ACTION[a.prediccion].text}
+            </span>
+          </button>
+        ))}
+      </div>
+      {!all && !filter && (
+        <button className="filter show-all" onClick={() => setAll(true)}>Ver los {alerts.length} productos</button>
+      )}
     </section>
   );
 }
 
-// ---------- Detalle de un producto ----------
+// ---------- Detalle de un producto, en un panel sobre la página ----------
 
-function ProductDetail({ alert: a }) {
-  const [history, setHistory] = useState([]);
+function DetailDialog({ alert, onClose }) {
+  const ref = useRef(null);
+
+  useEffect(() => {
+    const dialog = ref.current;
+    if (alert && !dialog.open) dialog.showModal();
+    if (!alert && dialog.open) dialog.close();
+  }, [alert]);
+
+  return (
+    <dialog ref={ref} className="sheet" onClose={onClose} aria-labelledby="detail-title"
+      onClick={(e) => { if (e.target === ref.current) onClose(); }}>
+      {alert && <ProductDetail key={alert.producto} alert={alert} onClose={onClose} />}
+    </dialog>
+  );
+}
+
+function ProductDetail({ alert: a, onClose }) {
+  const [history, setHistory] = useState(null);
 
   useEffect(() => {
     api(`/historico/${encodeURIComponent(a.producto)}?semanas=26`).then(setHistory).catch(() => setHistory([]));
   }, [a.producto]);
 
-  if (!history.length) return null;
-
   const next = addDays(a.semana_inicio, 7);
-  const data = history.map((r) => ({ semana: r.semana_inicio.slice(0, 10), precio: r.precio, nacional: r.precio_nacional }));
-  data[data.length - 1].rango = [a.precio, a.precio];
-  data.push({ semana: next, rango: [a.precio_min_esperado, a.precio_max_esperado] });
+  const action = ACTION[a.prediccion];
+  let data = [];
+  if (history?.length) {
+    data = history.map((r) => ({ semana: r.semana_inicio.slice(0, 10), precio: r.precio, nacional: r.precio_nacional }));
+    data[data.length - 1].rango = [a.precio, a.precio];
+    data.push({ semana: next, rango: [a.precio_min_esperado, a.precio_max_esperado] });
+  }
 
   return (
-    <section className="card detail">
-      <h2><span aria-hidden="true">{ICONS[a.producto]}</span> {a.producto}: últimos 6 meses y lo que viene</h2>
+    <div className="detail">
+      <div className="detail-head">
+        <h2 id="detail-title"><span aria-hidden="true">{ICONS[a.producto]}</span> {a.producto}</h2>
+        <button className="close" onClick={onClose} aria-label="Cerrar">×</button>
+      </div>
+      <p><span className={action.className}><span aria-hidden="true">{action.icon}</span> {action.text}</span></p>
       <p className="detail-text">
-        Hoy está en <strong>{pesos(a.precio)}/kg</strong> en Cavasa
-        ({a.cambio_1s > 0 ? "subió" : "bajó"} {pct(a.cambio_1s)} frente a la semana pasada).
-        Para la semana del {day(next)} se espera que <strong>{ACTION[a.prediccion].hint.replace("se espera que ", "")}</strong>:
-        entre <strong>{pesos(a.precio_min_esperado)}</strong> y <strong>{pesos(a.precio_max_esperado)}</strong> por kilo.
+        El último precio en Cavasa fue <strong>{pesos(a.precio)}/kg</strong> (semana del {day(a.semana_inicio)}):{" "}
+        {a.cambio_1s > 0 ? "subió" : "bajó"} {pct(a.cambio_1s)} frente a la semana anterior.
+        Para la semana del {day(next)} {action.why}: entre <strong>{pesos(a.precio_min_esperado)}</strong> y{" "}
+        <strong>{pesos(a.precio_max_esperado)}</strong> por kilo.
         {a.evaluadas ? ` Con este producto el modelo acertó ${a.aciertos} de las últimas ${a.evaluadas} semanas.` : ""}
       </p>
-      <ResponsiveContainer width="100%" height={260}>
-        <ComposedChart data={data} margin={{ left: 4, right: 12, top: 8 }}>
-          <CartesianGrid stroke="var(--line)" vertical={false} />
-          <XAxis dataKey="semana" tickFormatter={(d) => day(d)} tick={{ fontSize: 11, fill: "var(--muted)" }} minTickGap={36} />
-          <YAxis tickFormatter={(v) => "$" + (v / 1000).toLocaleString("es-CO") + " mil"} tick={{ fontSize: 11, fill: "var(--muted)" }} width={64} domain={["auto", "auto"]} />
-          <Tooltip
-            labelFormatter={(d) => "Semana del " + day(d)}
-            formatter={(v, name) => [Array.isArray(v) ? `${pesos(v[0])} – ${pesos(v[1])}` : pesos(v), name]}
-            contentStyle={{ background: "var(--card)", border: "1px solid var(--line)", borderRadius: 8 }}
-          />
-          <Area dataKey="rango" name="Rango esperado" stroke="none" fill="var(--maiz)" fillOpacity={0.45} />
-          <Line dataKey="nacional" name="Mediana nacional" stroke="var(--muted)" strokeDasharray="4 4" dot={false} />
-          <Line dataKey="precio" name="Cavasa" stroke="var(--tomate)" strokeWidth={2.5} dot={false} />
-        </ComposedChart>
-      </ResponsiveContainer>
-      <p className="legend small muted">
-        <span className="key tomate" /> Cavasa <span className="key dashed" /> Mediana nacional <span className="key maiz" /> Rango esperado para la próxima semana
-      </p>
-    </section>
+      {history === null && <p className="muted">Cargando precios…</p>}
+      {history?.length === 0 && <p className="muted">No hay historial de precios para mostrar.</p>}
+      {data.length > 0 && (
+        <>
+          <h3>Últimos 6 meses y lo que viene</h3>
+          <ResponsiveContainer width="100%" height={240}>
+            <ComposedChart data={data} margin={{ left: 4, right: 12, top: 8 }}>
+              <CartesianGrid stroke="var(--line)" vertical={false} />
+              <XAxis dataKey="semana" tickFormatter={(d) => day(d)} tick={{ fontSize: 12, fill: "var(--muted)" }} minTickGap={36} />
+              <YAxis tickFormatter={(v) => "$" + (v / 1000).toLocaleString("es-CO") + " mil"} tick={{ fontSize: 12, fill: "var(--muted)" }} width={68} domain={["auto", "auto"]} />
+              <Tooltip
+                labelFormatter={(d) => "Semana del " + day(d)}
+                formatter={(v, name) => [Array.isArray(v) ? `${pesos(v[0])} – ${pesos(v[1])}` : pesos(v), name]}
+                contentStyle={{ background: "var(--card)", border: "1px solid var(--line)", borderRadius: 8 }}
+              />
+              <Area dataKey="rango" name="Rango esperado" stroke="none" fill="var(--morado)" fillOpacity={0.35} />
+              <Line dataKey="nacional" name="Mediana nacional" stroke="var(--muted)" strokeDasharray="4 4" dot={false} />
+              <Line dataKey="precio" name="Cavasa" stroke="var(--turquesa)" strokeWidth={2.5} dot={false} />
+            </ComposedChart>
+          </ResponsiveContainer>
+          <p className="legend small muted">
+            <span className="key cavasa" /> Cavasa <span className="key dashed" /> Mediana nacional <span className="key rango" /> Rango esperado para la próxima semana
+          </p>
+        </>
+      )}
+    </div>
   );
 }

@@ -1,6 +1,32 @@
 # Historial de versiones
 
-## Sin publicar
+## v0.6.0 · Modelo
+- Modelo nuevo: promedio de HistGradientBoosting y ExtraTrees, con 33 variables y dos mercados de Cali. F1 de 0,447 a 0,472 y ahorro simulado de 0,39 % a 1,01 % en la prueba.
+- El modelo en producción se reajusta con todos los datos después de evaluarse.
+- `make experiments`: compara variantes con validación hacia adelante.
+- Baseline nuevo: comprar todo hoy.
+- El dashboard aclara que el ahorro de la lista supone que las predicciones se cumplen.
+- Las versiones anteriores se siguen pudiendo evaluar.
+- Dashboard rediseñado para celular: resumen arriba, una tarjeta por producto con la recomendación visible, detalle en un panel, pizarra con filtro y deshacer al quitar.
+- Colores de semáforo para la recomendación: verde para *Compra ya* y ámbar para *Espera*. El rojo queda para errores y el cambio de la semana pasada va en gris. *Normal* ahora es *Como siempre*.
+- Botones para enviar la lista y el boletín por WhatsApp, boletín en tres listas y buscador para agregar productos.
+- El precio se muestra con su fecha en vez de "hoy".
+- nginx ya no deja en caché la página, para que no quede la versión vieja tras un despliegue.
+
+## v0.5.0 · Operación
+- MLflow: experimentos, registro de modelos con alias `champion` y trazas del boletín. Es opcional: sin servidor, el pipeline sigue igual.
+- Prometheus (`/prometheus`, cinco alertas) y dashboard de Grafana precargado.
+- Airflow: DAG `agroprecio_semanal` con una tarea por etapa.
+- Pipeline por etapas: `python main.py --etapa silver`.
+- Pregunta "¿te sirvió?" en el dashboard y tabla `opiniones`.
+- Aviso de recomendación vencida y endpoint `/vigencia`.
+- El monitoreo separa el acierto real del backtest.
+- Corregido: un reentrenamiento reemplazaba las predicciones reales por las del backtest.
+- Corregido: la API programaba la actualización en hora UTC, no en la de Colombia.
+- Silver usa 30 % menos memoria con el mismo resultado.
+- El pipeline de GitHub Actions corre también los miércoles.
+- Tests de la API, el boletín, el monitoreo, el pipeline y MLflow (60 en total).
+- AI Canvas, plan de validación y guion del pitch.
 - Endpoint `/metrics` con la tabla de métricas de cada versión del modelo frente a los baselines, métricas por clase, matriz de confusión y métricas en producción.
 - El registro guarda las métricas completas de cada entrenamiento nuevo.
 - Fotos de plazas de mercado en el dashboard: portada, tarjeta del mercado y banda final, con banderines y colores tomados de las fotos.

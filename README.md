@@ -2,9 +2,43 @@
 
 Alertas semanales de compra para restaurantes pequeños de Cali, basadas en los precios mayoristas de Cavasa que publica el DANE (SIPSA).
 
-Cada semana AgroPrecio descarga el boletín del SIPSA, predice si el precio de 20 insumos frescos va a **subir, bajar o seguir estable** la semana siguiente y le dice al dueño del restaurante qué le conviene comprar ya y qué puede esperar. Claude redacta el mensaje en lenguaje sencillo.
+Cada semana AgroPrecio descarga el boletín del SIPSA, predice si el precio de 20 insumos frescos va a **subir, bajar o seguir estable** la semana siguiente y le dice al dueño del restaurante qué le conviene comprar ya y qué puede esperar. Claude puede redactar el mensaje en lenguaje sencillo; sin clave de API se usa una plantilla.
 
 ![arquitectura](docs/img/arquitectura.svg)
+
+## Evidencias
+
+### Dashboard
+
+Datos reales de Cavasa. El aviso naranja aparece porque el DANE va atrasado: el último boletín disponible el 22 de noviembre de 2026 era el del 31 de octubre al 6 de noviembre.
+
+![Dashboard de AgroPrecio](docs/img/dashboard.png)
+
+### MLflow
+
+La versión en producción con sus métricas, las de los baselines y los parámetros.
+
+![Métricas en MLflow](docs/img/mlflow.png)
+
+En el registro, la v0.6 tiene el alias `champion` y la anterior quedó archivada.
+
+![Registro de modelos en MLflow](docs/img/mlflow_registro.png)
+
+### Prometheus y Grafana
+
+El tablero reúne modelo, datos y producto. Muestra lo que está bien y lo que no: la recomendación está vencida y ninguna predicción real tiene resultado. Todavía no hay opiniones ni boletines de Claude, y el tráfico de la captura es de prueba.
+
+![Tablero de Grafana](docs/img/grafana.png)
+
+La recomendación vencida también dispara una alerta en Prometheus.
+
+![Alertas de Prometheus](docs/img/prometheus.png)
+
+### Airflow
+
+Una corrida completa del DAG `agroprecio_semanal`: las siete etapas terminan bien al primer intento, en 35 s.
+
+![DAG en Airflow](docs/img/airflow.png)
 
 ## El problema
 
@@ -16,12 +50,16 @@ Más detalle en [docs/01_problema_y_kpis.md](docs/01_problema_y_kpis.md).
 
 El dashboard (http://localhost:8080) está pensado para el dueño del restaurante, no para un analista:
 
-1. **Mi lista de mercado.** Anota lo que compra cada semana y cuántos kilos. La lista queda guardada en la base (tabla `listas`). Por cada producto ve el precio de hoy, el rango esperado para la próxima semana, qué hacer (*Compra ya*, *Espera* o *Normal*) y cuántas veces acertó el modelo con ese producto en las últimas 8 semanas.
-2. **Tu mercado de la semana.** Cuánto le cuesta la lista si compra todo hoy, si espera todo a la próxima semana y si sigue la recomendación.
-3. **Buscar boletín nuevo.** Cuando el DANE publica un boletín, el botón lo descarga y corre todo el pipeline, mostrando el progreso. Además, la API lo hace sola cada sábado a las 8 a.m. (`update` en `config/config.yaml`).
-4. **Pizarra de Cavasa.** Los 20 productos con su precio, el cambio frente a la semana pasada y lo que se espera.
-5. **Detalle por producto.** Los últimos 6 meses en Cavasa frente a la mediana nacional y el rango esperado para la próxima semana.
-6. **Boletín de la semana**, redactado por Claude, listo para copiar y mandar por WhatsApp.
+1. **De un vistazo.** Lo primero que ve: cuántos productos de su lista conviene comprar ya, cuáles puede esperar y cuánto cuesta el mercado siguiendo la recomendación.
+2. **Mi lista de mercado.** Anota lo que compra cada semana y cuántos kilos. La lista queda guardada en la base (tabla `listas`). Cada producto muestra qué hacer (*Compra ya*, *Espera* o *Como siempre*), el último precio con su fecha, el rango esperado para la próxima semana y cuántas veces acertó el modelo en las últimas 8 semanas. Para agregar un producto lo busca por nombre, y si quita uno por error puede deshacerlo.
+3. **Tu mercado de la semana.** Cuánto le cuesta la lista si compra todo ya, si espera todo una semana y si sigue la recomendación. Puede enviar su lista por WhatsApp.
+4. **Buscar boletín nuevo.** Cuando el DANE publica un boletín, el enlace lo descarga y corre todo el pipeline, mostrando el progreso. Además, la API lo hace sola cada sábado a las 8 a.m. (`update` en `config/config.yaml`).
+5. **Pizarra de Cavasa.** Los 20 productos con su precio, el cambio de la última semana y la recomendación. Se puede filtrar por recomendación.
+6. **Detalle por producto.** Al tocar un producto se abre un panel con los últimos 6 meses en Cavasa frente a la mediana nacional y el rango esperado para la próxima semana.
+7. **Boletín de la semana.** Los 20 productos en tres listas cortas, y el texto redactado por Claude o con la plantilla, listo para enviar por WhatsApp o copiar.
+8. **¿Te sirvió esta semana?** La respuesta queda guardada y se ve en Grafana.
+
+Si la semana recomendada ya pasó porque el DANE va atrasado, el dashboard lo avisa.
 
 ## Cómo correrlo
 
@@ -33,19 +71,34 @@ cp .env.example .env    # opcional: ANTHROPIC_API_KEY y puertos
 
 | Comando | Qué hace |
 |---|---|
-| `make docker` | Todo con Docker: pipeline, API y dashboard en http://localhost:8080 |
+| `make docker` | Todo con Docker: pipeline, API, dashboard, MLflow, Prometheus y Grafana |
+| `make airflow` / `make airflow-run` | Enciende Airflow (opcional) / dispara el DAG y muestra cada tarea |
+| `make monitoring` | Solo MLflow, Prometheus y Grafana |
+| `make status` / `make open` | Qué está encendido / abre dashboard, MLflow y Grafana |
 | `make docker-pipeline` | Solo el pipeline en Docker |
 | `make docker-api` / `make docker-web` | Solo la API, o API + dashboard, sin correr el pipeline |
 | `make docker-stop` | Apaga los contenedores |
 | `make install` | Crea `.venv` e instala Python y Node para correr local |
 | `make all` | Local: pipeline y luego API + dashboard juntos |
 | `make pipeline` / `make pipeline-fast` | Pipeline completo, o sin descargar |
-| `make retrain` | Fuerza un modelo nuevo |
+| `make retrain` / `make docker-retrain` | Fuerza un modelo nuevo, local o en Docker |
+| `make experiments` | Compara variantes del modelo |
 | `make api` / `make web` | Solo la API (:8000) o solo el dashboard (:5173) |
 | `make test` / `make notebook` | Tests y notebook de exploración |
 | `make clean` | Borra silver, gold, modelos y logs (bronze se conserva) |
 
 Si un puerto ya está ocupado: `API_PORT=8001 make docker`, o cámbialo en `.env`.
+
+| Servicio | URL |
+|---|---|
+| Dashboard | http://localhost:8080 |
+| API | http://localhost:8000/docs |
+| MLflow | http://localhost:5002 |
+| Prometheus | http://localhost:9092 |
+| Grafana | http://localhost:3002 (se ve sin cuenta; para editar, `admin` / `admin`) |
+| Airflow | http://localhost:8082 (sin usuario, solo desde este equipo) |
+
+Docker necesita unos 2 GB de RAM libres, y 2 GB más si se enciende Airflow.
 
 ### Con Docker Compose directamente
 
@@ -56,6 +109,7 @@ docker compose up --build
 - `pipeline`: descarga los boletines, limpia, entrena si hace falta, predice y genera el boletín. Termina y se apaga.
 - `api`: FastAPI en http://localhost:8000 (documentación en `/docs`).
 - `web`: dashboard en React en http://localhost:8080.
+- `mlflow`, `prometheus` y `grafana`: seguimiento del modelo y monitoreo.
 
 La primera ejecución descarga unos 180 boletines (~50 MB) y tarda unos minutos. Las siguientes solo bajan los boletines nuevos.
 
@@ -76,6 +130,7 @@ Opciones del pipeline:
 | `python main.py` | Descarga lo nuevo y corre todo |
 | `python main.py --sin-descarga` | Usa solo lo que ya está en `data/bronze` |
 | `python main.py --reentrenar` | Fuerza un modelo nuevo |
+| `python main.py --etapa silver` | Corre una sola etapa: `descargar`, `silver`, `gold`, `calidad`, `modelo`, `prediccion` o `boletin` |
 
 Tests: `pytest -q`
 
@@ -94,25 +149,34 @@ Cada ejecución corre 11 reglas de calidad sobre silver y gold y las guarda en l
 ## Modelo
 
 - **Qué predice:** la clase del cambio de precio de la próxima semana (`sube` > +3 %, `baja` < -3 %, `estable` en medio).
-- **Variables:** cambios de 1, 2 y 4 semanas, distancia a la media móvil, diferencia contra la mediana nacional, cambio nacional y mes.
-- **Algoritmo:** Random Forest de scikit-learn, sin tuning. La idea del MVP es gestionar bien el ciclo de vida del modelo, no exprimir la métrica.
-- **Validación:** corte temporal, con las últimas 20 semanas como prueba. Se compara siempre contra dos baselines.
+- **Variables:** 33, más el producto. Historia del precio, posición frente al país, la región y Corabastos, lo que pasó el año anterior y época del año.
+- **Algoritmo:** promedio de HistGradientBoosting y ExtraTrees (scikit-learn), entrenado con dos mercados de Cali y evaluado en Cavasa. Se eligió entre varias variantes con validación hacia adelante en el tiempo: ver [experimentos](docs/09_experimentos.md).
+- **Validación:** corte temporal, con las últimas 20 semanas como prueba. Se compara siempre contra tres baselines.
 
 | | Accuracy | F1 macro | Ahorro simulado |
 |---|---|---|---|
-| Random Forest | 0,45 | 0,45 | +0,4 % |
+| HistGradientBoosting + ExtraTrees (v0.6) | 0,48 | 0,47 | +1,0 % |
+| Random Forest (v0.5) | 0,45 | 0,45 | +0,4 % |
 | Baseline: repetir lo de la semana pasada | 0,40 | 0,40 | -0,3 % |
 | Baseline: siempre estable | 0,27 | 0,14 | 0 % |
+| Baseline: comprar todo hoy | 0,34 | 0,17 | -0,7 % |
 
-`GET /metrics` re-evalúa cada versión guardada sobre su periodo de prueba, junto a los dos baselines, y devuelve accuracy, balanced accuracy, precision, recall, F1 (macro y ponderado), kappa de Cohen, MCC, log loss, ROC AUC y el ahorro simulado. También trae las métricas por clase, la matriz de confusión y el acierto de las predicciones de producción que ya tienen resultado real. Con `/metrics?formato=html` se ve como tabla en el navegador.
+`GET /metrics` re-evalúa cada versión guardada sobre su periodo de prueba, junto a los tres baselines, y devuelve accuracy, balanced accuracy, precision, recall, F1 (macro y ponderado), kappa de Cohen, MCC, log loss, ROC AUC y el ahorro simulado. También trae las métricas por clase, la matriz de confusión y el acierto de las predicciones de producción que ya tienen resultado real. Con `/metrics?formato=html` se ve como tabla en el navegador.
 
-Un modelo solo pasa a producción si le gana al baseline. Las versiones quedan en `models/registry.json` con sus datos, parámetros y métricas. Ver [docs/model_card.md](docs/model_card.md).
+Un modelo solo pasa a producción si le gana al baseline. Las versiones quedan en `models/registry.json` con sus datos, parámetros y métricas, y se copian a MLflow.
+
+**Qué tan seguro es:** el ahorro mejora con claridad frente a la v0.5 (la diferencia va de +0,2 a +1,1 puntos, con 95 % de confianza); el F1, no tanto (de -0,03 a +0,08). El modelo se equivoca más de la mitad de las veces.
+
+**Estado real:** el acierto de las últimas 8 semanas es 0,44 y viene del backtest. Las 20 predicciones hechas antes de conocer el resultado todavía esperan el siguiente boletín. Ver [docs/model_card.md](docs/model_card.md).
 
 ## Operación (MLOps, LLMOps y DataOps)
 
-- **CI** (`.github/workflows/ci.yml`): tests y construcción de las imágenes Docker en cada push.
-- **Pipeline semanal** (`.github/workflows/pipeline_semanal.yml`): corre cada sábado, baja el boletín nuevo y publica la base y el registro del modelo como artefactos.
-- **Monitoreo:** se cruza cada predicción con lo que realmente pasó, se calcula el acierto de las últimas 8 semanas y se marca drift cuando un cambio de precio es atípico (z > 3). Si el acierto cae por debajo de 0,40 y hay datos nuevos, el siguiente run reentrena.
+- **CI** (`.github/workflows/ci.yml`): 67 tests, construcción de las imágenes Docker y carga del DAG en cada push.
+- **MLflow:** experimentos, registro con alias `champion` y trazas del boletín. Es opcional: sin servidor, el pipeline sigue igual.
+- **Prometheus y Grafana:** tráfico de la API, modelo, calidad de datos, vigencia y opiniones, con cinco alertas.
+- **Airflow:** el DAG `agroprecio_semanal` corre una tarea por etapa, miércoles y sábado.
+- **Pipeline semanal** (`.github/workflows/pipeline_semanal.yml`): corre miércoles y sábado, baja el boletín nuevo y publica la base y el registro del modelo como artefactos.
+- **Monitoreo:** se cruza cada predicción con lo que realmente pasó, se calcula el acierto de las últimas 8 semanas (y aparte el de las predicciones reales) y se marca drift cuando un cambio de precio es atípico (z > 3). Si el acierto cae por debajo de 0,40 y hay datos nuevos, el siguiente run reentrena.
 - **LLM:** cada llamada a Claude queda en `logs/llm.jsonl` con prompt, respuesta, tokens y latencia. Si el texto trae precios que no están en los datos, se descarta y se usa la plantilla. Sin API key, el producto funciona igual con la plantilla.
 
 Detalle en [docs/05_operacion.md](docs/05_operacion.md).
@@ -126,10 +190,14 @@ Detalle en [docs/05_operacion.md](docs/05_operacion.md).
 │   ├── extract/             # descarga y lectura de los Excel del SIPSA
 │   ├── transform/           # limpieza (silver) y variables (gold)
 │   ├── load/                # SQLite
-│   ├── model/               # entrenamiento, predicción, monitoreo
+│   ├── model/               # entrenamiento, predicción, monitoreo y MLflow
 │   ├── llm/                 # boletín con Claude
-│   └── quality.py           # reglas de calidad de datos
-├── api/                     # FastAPI
+│   ├── quality.py           # reglas de calidad de datos
+│   ├── vigencia.py          # si la recomendación sigue vigente
+│   └── opiniones.py         # respuestas a "¿te sirvió?"
+├── dags/                    # DAG de Airflow
+├── docker/                  # MLflow, Prometheus, Grafana y Airflow
+├── api/                     # FastAPI y métricas de Prometheus
 ├── frontend/                # React + Vite
 ├── tests/
 ├── notebooks/               # exploración
@@ -146,9 +214,13 @@ Detalle en [docs/05_operacion.md](docs/05_operacion.md).
 3. [Data Innovation Board](docs/03_data_innovation_board.md)
 4. [Metodología: CRISP-DM y Scrum ML](docs/04_metodologia.md)
 5. [Operación: DataOps, MLOps y LLMOps](docs/05_operacion.md)
-6. [Model card](docs/model_card.md)
-7. [Diccionario de datos](docs/diccionario_datos.md)
-8. [Historial de versiones](CHANGELOG.md)
+6. [AI Canvas](docs/06_ai_canvas.md)
+7. [Validación con restaurantes](docs/07_validacion.md)
+8. [Guion del pitch](docs/08_pitch.md)
+9. [Experimentos del modelo](docs/09_experimentos.md)
+10. [Model card](docs/model_card.md)
+11. [Diccionario de datos](docs/diccionario_datos.md)
+12. [Historial de versiones](CHANGELOG.md)
 
 ## Fuente de datos
 
