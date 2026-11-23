@@ -15,7 +15,7 @@ PY := .venv/bin/python
 .DEFAULT_GOAL := help
 .PHONY: help install pipeline pipeline-fast retrain experiments api web test notebook \
         all docker docker-pipeline docker-retrain docker-api docker-web docker-logs docker-stop \
-        monitoring airflow airflow-run status open clean
+        monitoring airflow airflow-run status open tools clean
 
 help: ## Show this help
 	@printf "Usage: make <command>\n\n"
@@ -100,6 +100,17 @@ status: ## Show which services are up
 
 open: ## Open the dashboard, MLflow and Grafana
 	@open http://localhost:$(WEB_PORT) http://localhost:$(MLFLOW_PORT) http://localhost:$(GRAFANA_PORT)/d/agroprecio
+
+tools: ## Open MLflow, Grafana, Prometheus and Airflow in Chrome (the ones that are up)
+	@urls=""; \
+	add() { if curl -sf -o /dev/null -m 3 "$$2"; then urls="$$urls $$3"; printf "  %-11s %s\n" "$$1" "$$3"; \
+	        else printf "  %-11s no responde · %s\n" "$$1" "$$4"; fi; }; \
+	add MLflow     http://localhost:$(MLFLOW_PORT)/health                 http://localhost:$(MLFLOW_PORT)                "make monitoring"; \
+	add Grafana    http://localhost:$(GRAFANA_PORT)/api/health            http://localhost:$(GRAFANA_PORT)/d/agroprecio  "make monitoring"; \
+	add Prometheus http://localhost:$(PROMETHEUS_PORT)/-/ready            http://localhost:$(PROMETHEUS_PORT)/alerts     "make monitoring"; \
+	add Airflow    http://localhost:$(AIRFLOW_PORT)/api/v2/monitor/health http://localhost:$(AIRFLOW_PORT)               "make airflow"; \
+	if [ -z "$$urls" ]; then echo "Ninguna herramienta responde."; exit 0; fi; \
+	open -a "Google Chrome" $$urls 2>/dev/null || open $$urls
 
 # ---------- Cleanup ----------
 

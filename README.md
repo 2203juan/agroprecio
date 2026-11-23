@@ -77,6 +77,7 @@ cp .env.example .env    # opcional: ANTHROPIC_API_KEY y puertos
 | `make airflow` / `make airflow-run` | Enciende Airflow (opcional) / dispara el DAG y muestra cada tarea |
 | `make monitoring` | Solo MLflow, Prometheus y Grafana |
 | `make status` / `make open` | Qué está encendido / abre dashboard, MLflow y Grafana |
+| `make tools` | Abre en Chrome MLflow, Grafana, Prometheus y Airflow (los que estén encendidos) |
 | `make docker-pipeline` | Solo el pipeline en Docker |
 | `make docker-api` / `make docker-web` | Solo la API, o API + dashboard, sin correr el pipeline |
 | `make docker-stop` | Apaga los contenedores |
