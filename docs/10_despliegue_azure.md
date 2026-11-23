@@ -44,7 +44,9 @@ App Service no se entera solo de que hay una imagen nueva. Para que el workflow 
 az webapp deployment container config -n agroprecio -g rg-agroprecio --enable-cd true --query CI_CD_URL -o tsv
 ```
 
-Esa dirección lleva una credencial: va solo en el secreto, nunca en el código. Sin el secreto, la imagen se publica igual y la app se actualiza reiniciándola:
+El aviso solo funciona si la app acepta la autenticación básica de despliegue, que en las apps nuevas viene desactivada (sin ella responde 401). Se habilita en el portal, en *Configuración → Configuración general → Credenciales de publicación de autenticación básica de SCM*.
+
+Esa dirección lleva una credencial de la app: va solo en el secreto, nunca en el código. Quien la tuviera podría desplegar en esta app, pero no en el resto de la suscripción. Sin el secreto, la imagen se publica igual y la app se actualiza reiniciándola:
 
 ```bash
 az webapp restart -n agroprecio -g rg-agroprecio
