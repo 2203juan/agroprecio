@@ -27,7 +27,7 @@ Cada escena queda en bucle hasta que avanzas, así que no hay que correr detrás
 | 5 | Fácil, cada semana | 0:30 |
 | 6 | ¿Cuánto me ahorro? | 0:30 |
 | 7 | ¿Lo probamos? | 0:25 |
-| 8 | Cierre, después de la demostración | libre |
+| 8 | Cierre, después de la demostración. El enlace abre la versión en línea | libre |
 
 ## Versión en video (opcional)
 

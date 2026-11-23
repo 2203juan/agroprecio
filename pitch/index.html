@@ -211,7 +211,8 @@ h1, h2, .big { font-family: var(--display); font-weight: 800; letter-spacing: -.
 .s7 .sign { position: absolute; left: 100px; top: 640px; display: flex; align-items: center; gap: 20px; font: 800 66px/1 var(--display); letter-spacing: -.03em; }
 .s7 .sign svg { width: 64px; height: 64px; fill: var(--yellow); }
 .s7 .sign span { color: var(--yellow); }
-.s7 .sign em { margin-left: 30px; font: 500 38px/1 "DM Sans", sans-serif; letter-spacing: 0; color: var(--lime); }
+.s7 .url { margin-left: 34px; padding: 18px 34px 20px; border-radius: 999px; background: var(--yellow); color: var(--forest); font: 700 42px/1 "DM Sans", sans-serif; letter-spacing: 0; text-decoration: none; cursor: pointer; }
+.s7 .url:hover { background: var(--white); }
 .s7 .strip { bottom: 60px; }
 
 /* Ayuda de teclas (no sale en el video) */
@@ -358,7 +359,7 @@ h1, h2, .big { font-family: var(--display); font-weight: 800; letter-spacing: -.
       <h1 class="rise" style="--dl:.6s">Los precios ya son públicos.</h1>
       <h1 class="rise outline" style="--dl:1.6s">Falta que lleguen<br>a tu cocina.</h1>
     </div>
-    <div class="sign rise" style="--dl:2.8s"><svg viewBox="0 0 32 32"><path d="M27 4C13 4 5 11 5 20c0 2 .5 3.8 1.3 5.3C10 17 16 12 23 9.5 16.5 13.5 11.500 19 9 27.5c1.300.3 2.700.5 4 .5 9 0 15-8 14-24Z"/></svg><b>Agro<span>Precio</span></b><em>Precios de la plaza para tu cocina</em></div>
+    <div class="sign rise" style="--dl:2.8s"><svg viewBox="0 0 32 32"><path d="M27 4C13 4 5 11 5 20c0 2 .5 3.8 1.3 5.3C10 17 16 12 23 9.5 16.5 13.5 11.500 19 9 27.5c1.300.3 2.700.5 4 .5 9 0 15-8 14-24Z"/></svg><b>Agro<span>Precio</span></b><a class="url" href="https://agroprecio.azurewebsites.net" target="_blank" rel="noopener">agroprecio.azurewebsites.net</a></div>
     <div class="strip" data-strip></div>
   </section>
 </div>
@@ -496,7 +497,8 @@ if (REC) {
     else if (k.toLowerCase() === "f") { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); }
     else if (k.toLowerCase() === "a") { auto = !auto; say(auto ? "Automático: avanza solo, 3:00 en total" : "Manual: avanza con →"); show(cur, true); }
   });
-  addEventListener("click", next);
+  // Un clic avanza, salvo sobre un enlace: ese se abre
+  addEventListener("click", (e) => { if (!e.target.closest("a")) next(); });
   let idle;
   addEventListener("mousemove", () => { document.body.classList.add("pointer"); clearTimeout(idle); idle = setTimeout(() => document.body.classList.remove("pointer"), 1500); });
 }
