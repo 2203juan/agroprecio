@@ -63,7 +63,7 @@ Intervalos de 95 % (remuestreo por semanas): F1 de 0,478 a 0,589; ahorro de 0,3 
 - El acierto es moderado: casi la mitad de las veces (46 %) la clase no es la correcta. Por eso solo se recomienda con señal clara, y aun así 4 de cada 10 recomendaciones fallan.
 - La simulación supone que se puede guardar el producto una semana, lo cual no siempre es cierto en perecederos como la lechuga o el cilantro.
 - No usa clima ni abastecimiento, que mueven mucho los precios.
-- Depende del servicio web del DANE para el diario. Si falla, se usa el último descargado y las variables del diario de la semana nueva quedan vacías: el modelo predice igual, pero peor, y la regla de calidad `diario_en_la_ultima_semana` lo avisa.
+- Depende de los precios diarios del DANE. El servicio web no responde fuera de Colombia; en ese caso se usan los anexos en Excel. Si tampoco llegan, las variables del diario de la semana nueva quedan vacías: el modelo predice igual, pero peor, y la regla de calidad `diario_en_la_ultima_semana` lo avisa.
 - Las 20 semanas de prueba ya se habían usado para medir la v0.6.
 - El ahorro que muestra el dashboard para una lista supone que las predicciones se cumplen; en la simulación, el ahorro medio es de 1 %.
 - El ahorro simulado no descuenta lo que se daña al guardar un producto una semana.

@@ -27,7 +27,7 @@ En un despliegue con Docker, la API también corre el pipeline: con el botón *B
 | Descarga incremental | Solo se bajan los boletines que no están en bronze |
 | Datos inmutables en bronze | Los Excel no se modifican; toda limpieza pasa a silver |
 | Calidad automática | 12 reglas en `src/quality.py` (nulos, precios positivos, mínimo ≤ máximo, duplicados, semanas de 7 días, productos presentes, clases válidas, diario disponible en la última semana…) |
-| Segunda fuente | Los precios diarios llegan por el servicio web del SIPSA, una vez al día como máximo. Si falla o llega incompleto, se conserva la descarga anterior y el pipeline sigue |
+| Segunda fuente | Los precios diarios llegan por el servicio web del SIPSA, una vez al día como máximo. Si no responde (pasa siempre desde GitHub Actions, porque no atiende fuera de Colombia), se parte de la copia del repositorio y se agregan los días que falten con los anexos en Excel del DANE |
 | Historial de calidad | Cada corrida agrega sus resultados a la tabla `calidad_datos` |
 | Freno de emergencia | Si fallan las reglas críticas, el pipeline se detiene antes de entrenar o publicar |
 | Configuración separada del código | Mercado, productos, umbrales y rutas en `config/config.yaml` |

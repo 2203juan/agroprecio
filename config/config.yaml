@@ -16,6 +16,10 @@ source:
   max_file_mb: 5
   # Precios de cada día de mercado desde 2020, por el servicio web del SIPSA
   daily_ws_url: https://appweb.dane.gov.co/sipsaWS/SrvSipsaUpraBeanService
+  # Respaldo cuando el servicio web no responde (no atiende fuera de Colombia): una copia en
+  # el repositorio y el anexo en Excel de cada día que falte
+  daily_seed: data/semilla/sipsa_diario.parquet
+  daily_excel_url: https://www.dane.gov.co/files/operaciones/SIPSA/anex-SIPSADiario-{day}{month}{year}.xlsx
 
 market: Cali, Cavasa
 

@@ -35,6 +35,11 @@ La semana se toma del título del índice, por ejemplo "Boletín semanal precios
 
 `descargas.csv` guarda la fecha de cada descarga, las filas y el rango de días.
 
+El servicio web no responde desde fuera de Colombia, y GitHub Actions corre fuera. Para ese caso hay un respaldo en dos partes:
+
+- `data/semilla/sipsa_diario.parquet`: una copia del diario guardada en el repositorio (al 23 de noviembre de 2026). Se usa si bronze está vacío o es más viejo. Para refrescarla, se copia encima el archivo de bronze después de una corrida local.
+- El anexo diario en Excel del sitio principal del DANE, un archivo por día hábil. El pipeline baja solo los días posteriores al último que tiene. Trae los mismos precios promedio (comprobado contra el servicio web), pero no el mínimo ni el máximo, ni los sábados.
+
 Cavasa tiene mercado lunes y jueves; Corabastos, de lunes a viernes. Trae unos 37 productos: no incluye cilantro, y la yuca, la papa parda y la zanahoria de Cavasa no corresponden a las del boletín semanal.
 
 ## Silver: `data/silver/diario.parquet`

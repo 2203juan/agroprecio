@@ -1,6 +1,7 @@
 # Historial de versiones
 
 ## Sin publicar
+- Respaldo del diario: el servicio web del SIPSA no responde desde GitHub Actions. El pipeline parte de una copia en el repositorio y se pone al día con los anexos diarios en Excel.
 - Ahorro real de la lista de mercado: compara, con los precios que ya pasaron, comprar todo ya frente a seguir la recomendación, semana por semana.
 - Mercado de ejemplo para un restaurante de 50 almuerzos diarios de lunes a sábado.
 - Despliegue en Azure App Service (plan gratuito): imagen única (`Dockerfile.nube`) con página, API, base y modelo. El workflow semanal la publica en ghcr.io.
