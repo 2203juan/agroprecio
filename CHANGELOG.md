@@ -7,6 +7,11 @@
 - Modo público (`AGRO_PUBLICO=1`): la lista se guarda en el navegador, el botón de actualizar no aparece y las opiniones sobreviven a los reinicios.
 - Fondo animado para el pitch (`pitch/`) y guion adaptado a dueños de restaurante.
 
+## v0.7.1 · Señal clara
+- El modelo solo recomienda *Compra ya* o *Espera* con confianza de 50 % o más; en el resto dice *Como siempre, sin señal clara*. En la prueba recomienda en 54 % de los casos y acierta 62 %.
+- La lista de mercado, el ahorro real y el boletín usan la recomendación, no la predicción cruda.
+- `/metrics` y el registro guardan `cobertura_senal_clara` y `accuracy_senal_clara`.
+
 ## v0.7.0 · Precios diarios
 - Fuente nueva: precios de cada día de mercado, por el servicio web del SIPSA (desde 2020, una descarga al día).
 - Nueve variables sobre cómo cerró la semana en Cavasa, Corabastos, la región y el país.

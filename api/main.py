@@ -135,8 +135,7 @@ def costed(name, items):
     rows, totals = cost_list(items, query("SELECT * FROM alertas", DB))
     # Predicciones pasadas con el precio que realmente hubo la semana siguiente
     history = query(
-        "SELECT p.semana_inicio, p.producto, p.prediccion, f.precio, f.precio_siguiente "
-        "FROM predicciones p JOIN features f "
+        "SELECT p.*, f.precio_siguiente FROM predicciones p JOIN features f "
         "ON f.producto = p.producto AND f.semana_inicio = p.semana_inicio", DB)
     return {"restaurante": name, "items": records(rows), "totales": totals,
             "ahorro_real": real_savings(items, history)}

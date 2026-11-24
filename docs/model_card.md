@@ -55,10 +55,12 @@ Otras métricas de la v0.7: balanced accuracy 0,533, kappa de Cohen 0,300, MCC 0
 
 Intervalos de 95 % (remuestreo por semanas): F1 de 0,478 a 0,589; ahorro de 0,3 % a 2,0 %. Frente a la v0.6, el F1 mejora entre 0,029 y 0,095 y el accuracy entre 0,032 y 0,095. El ahorro simulado no cambia de forma distinguible (entre -0,6 y +0,6 puntos).
 
+**Recomendar solo con señal clara.** El dashboard dice "compra ya" o "espera" solo cuando la confianza del modelo es de 50 % o más; en el resto dice "como siempre, sin señal clara". En la prueba eso cubre 54 % de los casos y ahí el acierto es 0,617. Las métricas de la tabla son del modelo opinando sobre todo.
+
 **Ahorro simulado:** cuando el modelo dice `sube`, el restaurante compra esta semana; si no, compra la siguiente como siempre. Se compara lo que pagaría con lo que paga normalmente.
 
 ## Limitaciones
-- El acierto es moderado: casi la mitad de las veces (46 %) la clase no es la correcta. Por eso cada alerta muestra su confianza.
+- El acierto es moderado: casi la mitad de las veces (46 %) la clase no es la correcta. Por eso solo se recomienda con señal clara, y aun así 4 de cada 10 recomendaciones fallan.
 - La simulación supone que se puede guardar el producto una semana, lo cual no siempre es cierto en perecederos como la lechuga o el cilantro.
 - No usa clima ni abastecimiento, que mueven mucho los precios.
 - Depende del servicio web del DANE para el diario. Si falla, se usa el último descargado y las variables del diario de la semana nueva quedan vacías: el modelo predice igual, pero peor, y la regla de calidad `diario_en_la_ultima_semana` lo avisa.

@@ -79,6 +79,35 @@ Con el mercado de ejemplo del dashboard (50 almuerzos diarios), el ahorro real d
 - **La prueba ya se había mirado** con la v0.6. Esta vez la decisión se tomó con la validación y la prueba se corrió una sola vez con el código final, pero son las mismas 20 semanas. La confirmación de verdad son las semanas nuevas.
 - **Dependencia nueva:** si el servicio web del DANE falla, el pipeline sigue con el último diario descargado y la regla de calidad `diario_en_la_ultima_semana` lo avisa.
 
+## Después de la v0.7: callar cuando no sabe
+
+Con el modelo ya entrenado se probaron dos ideas para subir el acierto sin datos nuevos.
+
+### Recomendar solo con señal clara (se adoptó)
+
+La confianza del modelo está bien calibrada: en validación, cuando dice 65 % acierta 65 %, y cuando dice 43 % acierta 41 %. Eso permite usarla como filtro. Si la confianza no llega a un mínimo, el producto queda "sin señal clara" y la recomendación es comprar como siempre.
+
+Validación (1.390 predicciones fuera de muestra):
+
+| Confianza mínima | Casos con recomendación | Acierto en esos casos | "Compra ya" o "espera" que salen al revés |
+|---|---|---|---|
+| Sin filtro | 100 % | 55 % | 21 % |
+| 45 % | 76 % | 60 % | 17 % |
+| **50 %** | **59 %** | **64 %** | **15 %** |
+| 55 % | 44 % | 67 % | 13 % |
+
+Se eligió 50 % en validación (`model.min_confidence`). En las 20 semanas de prueba: recomienda en 54 % de los casos y acierta 62 % (65 % en las de "compra ya" o "espera"), frente a 54 % opinando sobre todo. El ahorro real del mercado de ejemplo queda en $255.878 (antes $248.628); el ahorro simulado baja de 1,13 % a 0,96 %, porque se adelantan menos compras.
+
+No es un modelo mejor: es el mismo, que deja de opinar donde acierta menos de la mitad de las veces. Las métricas de la tabla de arriba siguen siendo las del modelo opinando sobre todo; el acierto con señal clara se guarda aparte (`accuracy_senal_clara` y `cobertura_senal_clara`).
+
+### Usar el lunes de la semana que se predice (no se adoptó)
+
+Sabiendo el precio del lunes de la semana objetivo, el acierto en validación sube de 55 % a 75 %. Pero es una mejora mecánica: medio promedio semanal ya se conoce. Una regla de una línea ("si el lunes está por encima del promedio de la semana pasada, sube") acierta 80 % en los productos con dato, igual que el modelo. Y la recomendación pierde sentido, porque el lunes el precio ya se movió.
+
+### Predecir el siguiente día de mercado (queda como idea)
+
+La pregunta útil el lunes es otra: ¿compro hoy o espero al jueves? Un primer modelo sobre el diario (21.435 filas de Cavasa desde 2020, un solo HistGradientBoosting) da en los mismos bloques acierto 53 %, F1 0,53 y AUC 0,71, frente a 36 % de repetir el último cambio; con confianza de 50 % o más, acierta 61 % en la mitad de los casos. Es un nivel parecido al del modelo semanal, con el doble de decisiones por semana y seis años de historia. No se implementó porque cambia lo que el producto le pregunta al usuario; sería la base de una versión siguiente.
+
 ---
 
 # Ronda anterior (v0.6)

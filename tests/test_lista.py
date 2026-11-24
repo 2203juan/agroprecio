@@ -80,3 +80,10 @@ def test_real_savings_empty_list():
 
     out = real_savings(pd.DataFrame(columns=["producto", "kg_semana"]), pd.DataFrame())
     assert out == {"semanas": [], "resumen": None}
+
+
+def test_costs_follow_the_recommendation_not_the_raw_prediction():
+    alerts = ALERTS.assign(recomendacion=["sube", "estable", "estable"])  # el cilantro quedó sin señal clara
+    items = pd.DataFrame({"producto": ["Cilantro"], "kg_semana": [2]})
+    _, totals = cost_list(items, alerts)
+    assert totals["costo_recomendado"] == totals["costo_hoy"]

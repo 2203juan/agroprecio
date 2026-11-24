@@ -13,14 +13,14 @@ El fondo no trae texto para leer: muestra las cifras y tú las cuentas. Con `→
 | 0:00 | Portada | Saludo y nombre. |
 | 0:06 | Comprar a ciegas | Usted compra verdura cada semana sin saber si mañana sube. Siete de cada diez semanas, un producto de Cavasa cambia más de 3 %. |
 | 0:35 | 4.000 filas de Excel | Esos precios son públicos y gratis: el DANE los publica cada viernes, en un Excel de más de 4.000 filas. Nadie en una cocina lo abre. |
-| 1:05 | ¿Qué compro ya y qué espero? | AgroPrecio lo lee por usted y le responde una sola pregunta. Esta semana: 9 productos para comprar ya, 7 para esperar y 4 como siempre. |
+| 1:05 | ¿Qué compro ya y qué espero? | AgroPrecio lo lee por usted y le responde una sola pregunta. Esta semana: 3 productos para comprar ya y 3 para esperar. En los otros 14 no hay una señal clara, y AgroPrecio lo dice: se compran como siempre. |
 | 1:35 | Fácil, cada semana | Anota su lista de mercado, ve qué comprar y qué esperar, sabe cuánto le cuesta la semana y lo comparte por WhatsApp con quien compra. No instala nada, no cambia de proveedor y la decisión es suya. |
-| 2:05 | ¿Cuánto me ahorro? | Tomemos un restaurante de 50 almuerzos diarios, de lunes a sábado: compra unos 700.000 pesos de mercado a la semana. En las últimas 20 semanas, con los precios que publicó el DANE, siguiendo la recomendación habría pagado 249.000 pesos menos. Son cerca de 650.000 al año. Le salió mejor en 15 de las 20 semanas; en las otras 5 esperar salió más caro, y por eso en cada producto le dice cuántas veces ha acertado. |
+| 2:05 | ¿Cuánto me ahorro? | Tomemos un restaurante de 50 almuerzos diarios, de lunes a sábado: compra unos 700.000 pesos de mercado a la semana. En las últimas 20 semanas, con los precios que publicó el DANE, siguiendo la recomendación habría pagado 256.000 pesos menos. Son cerca de 665.000 al año. Le salió mejor en 15 de las 20 semanas; en las otras 5 esperar salió más caro, y por eso en cada producto le dice cuántas veces ha acertado. |
 | 2:35 | ¿Lo probamos? | Buscamos 5 restaurantes. Son 15 minutos para empezar, es gratis y no hay que instalar nada. Veámoslo en vivo. |
 | 3:00 | **Demostración** (abajo) | Solo el dashboard. |
 | 5:00 | Cierre | Los precios ya son públicos; falta que lleguen a su cocina. |
 
-**Cuidado con la cifra del ahorro.** Los $248.628 son reales en el sentido de que usan las recomendaciones de cada semana y los precios que salieron después, pero ningún restaurante compró así: es el mercado de ejemplo, no un cliente. Es 1,8 % del mercado. La cuenta supone que lo que iba a bajar se pudo dejar para la semana siguiente y no descuenta lo que se dañe o haga falta mientras tanto. Los $650.000 al año son esas 20 semanas llevadas a 52, no una promesa. La misma sección está en el dashboard, por si alguien pide verla.
+**Cuidado con la cifra del ahorro.** Los $255.878 son reales en el sentido de que usan las recomendaciones de cada semana y los precios que salieron después, pero ningún restaurante compró así: es el mercado de ejemplo, no un cliente. Es 1,8 % del mercado. La cuenta supone que lo que iba a bajar se pudo dejar para la semana siguiente y no descuenta lo que se dañe o haga falta mientras tanto. Los $665.000 al año son esas 20 semanas llevadas a 52, no una promesa. La misma sección está en el dashboard, por si alguien pide verla.
 
 ## Demostración (2 minutos)
 
@@ -42,7 +42,7 @@ Plan B si falla internet: todo corre en el portátil, menos *Buscar boletín nue
 
 **¿Cuánto cuesta?** La versión básica es gratis. Los datos son públicos y no hay que instalar nada.
 
-**¿Y si se equivoca?** Acierta un poco más de la mitad de las veces. Por eso cada producto muestra cuántas de las últimas 8 semanas acertó, y la decisión siempre es suya. En promedio, hacerle caso sale mejor que no hacerlo.
+**¿Y si se equivoca?** Solo recomienda comprar ya o esperar cuando tiene una señal clara, y ahí acierta 6 de cada 10 veces. En el resto dice que no sabe. Cada producto muestra cuántas de las últimas 8 semanas acertó, y la decisión siempre es suya. En promedio, hacerle caso sale mejor que no hacerlo.
 
 **¿Sirve para lo que se daña rápido?** En cilantro o lechuga, guardar una semana también cuesta. Ahí la recomendación es una señal, no una orden.
 
@@ -52,7 +52,7 @@ Plan B si falla internet: todo corre en el portátil, menos *Buscar boletín nue
 
 ### Si alguien pregunta cómo funciona por dentro
 
-**¿Por qué un modelo con 54 % de acierto?** Son tres clases, y la regla de repetir la semana anterior acierta 40 %. Antes acertaba 48 %: la mejora vino de sumar los precios de cada día de mercado, que dicen cómo cerró la semana, no de cambiar el algoritmo.
+**¿Por qué un modelo con 54 % de acierto?** Ese es el acierto opinando sobre todo; en lo que sí recomienda, que es más o menos la mitad de los casos, acierta 62 %. Son tres clases, y la regla de repetir la semana anterior acierta 40 %. Antes acertaba 48 %: la mejora vino de sumar los precios de cada día de mercado, que dicen cómo cerró la semana, no de cambiar el algoritmo.
 
 **¿Usa redes neuronales?** Sí, una pequeña dentro de un ensamble con dos modelos de árboles. Aporta poco: con tan pocos datos, lo que más pesa es qué información entra.
 

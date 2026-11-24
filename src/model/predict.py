@@ -12,7 +12,14 @@ ACTIONS = {
 }
 
 
-def predict_latest(gold, model, entry):
+def recommend(prediction, confidence, min_confidence):
+    """Lo que se le dice al restaurante: la clase del modelo solo si la confianza alcanza.
+    Con poca confianza el modelo acierta menos de la mitad de las veces, así que calla."""
+    clear = pd.Series(confidence, index=prediction.index) >= min_confidence
+    return prediction.where(clear, "estable"), clear.map({True: "clara", False: "debil"})
+
+
+def predict_latest(gold, model, entry, min_confidence=0.0):
     latest = gold.dropna(subset=BASE_FEATURES).sort_values("semana_inicio").groupby("producto").tail(1)
     # Cada versión guarda las variables con las que se entrenó
     X = latest[["producto"] + entry["features"]]
@@ -21,18 +28,22 @@ def predict_latest(gold, model, entry):
     out = latest[["semana_inicio", "producto", "grupo", "precio", "cambio_1s", "precio_nacional"]].copy()
     out["prediccion"] = model.predict(X)
     out["confianza"] = proba.max(axis=1).round(3)
-    out["accion"] = out["prediccion"].map(ACTIONS)
+    out["recomendacion"], out["senal"] = recommend(out["prediccion"], out["confianza"], min_confidence)
+    out["accion"] = out["recomendacion"].map(ACTIONS)
     out["modelo_version"] = entry["version"]
     out["fecha_prediccion"] = datetime.now().isoformat(timespec="seconds")
     # Primero lo que conviene comprar ya
-    order = out["prediccion"].map({"sube": 0, "baja": 1, "estable": 2})
+    order = out["recomendacion"].map({"sube": 0, "baja": 1, "estable": 2})
     return out.assign(_orden=order).sort_values(["_orden", "confianza"], ascending=[True, False]) \
               .drop(columns="_orden").reset_index(drop=True)
 
 
 def add_to_log(log, new):
     """Historial de predicciones: una por producto y semana (la más reciente gana)."""
-    keep = ["semana_inicio", "producto", "precio", "prediccion", "confianza", "modelo_version", "fecha_prediccion"]
+    keep = ["semana_inicio", "producto", "precio", "prediccion", "recomendacion", "confianza",
+            "modelo_version", "fecha_prediccion"]
+    if "recomendacion" not in new:
+        new = new.assign(recomendacion=new["prediccion"])
     both = pd.concat([log, new[keep]], ignore_index=True) if not log.empty else new[keep]
     both["semana_inicio"] = pd.to_datetime(both["semana_inicio"])
     return both.drop_duplicates(["semana_inicio", "producto"], keep="last")

@@ -167,6 +167,8 @@ Cada ejecución corre 12 reglas de calidad sobre silver y gold y las guarda en l
 | Baseline: siempre estable | 0,27 | 0,14 | 0 % |
 | Baseline: comprar todo hoy | 0,34 | 0,17 | -0,7 % |
 
+El dashboard solo dice *Compra ya* o *Espera* cuando la confianza del modelo es de 50 % o más. Eso pasa en cerca de la mitad de los casos, y ahí acierta 62 %; en el resto dice *Como siempre, sin señal clara*.
+
 La mejora de la v0.7 viene de un dato nuevo, no del algoritmo: el F1 sube entre 0,03 y 0,10 (intervalo de 95 %), y el ahorro simulado queda igual. Ver [experimentos](docs/09_experimentos.md).
 
 `GET /metrics` re-evalúa cada versión guardada sobre su periodo de prueba, junto a los tres baselines, y devuelve accuracy, balanced accuracy, precision, recall, F1 (macro y ponderado), kappa de Cohen, MCC, log loss, ROC AUC y el ahorro simulado. También trae las métricas por clase, la matriz de confusión y el acierto de las predicciones de producción que ya tienen resultado real. Con `/metrics?formato=html` se ve como tabla en el navegador.

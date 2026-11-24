@@ -141,7 +141,7 @@ def stage_prediccion(cfg, log):
     if model is None:
         raise SystemExit("No hay un modelo en producción que supere el baseline")
 
-    alerts = expected_range(gold, predict_latest(gold, model, entry))
+    alerts = expected_range(gold, predict_latest(gold, model, entry, cfg["model"].get("min_confidence", 0)))
     save_table(add_to_log(read_table("predicciones", db), alerts), "predicciones", db)
 
     scored = monitor.score_predictions(read_table("predicciones", db), gold)

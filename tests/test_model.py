@@ -93,3 +93,32 @@ def test_experiments_never_touch_the_test_weeks():
     gold = pd.DataFrame({"semana_inicio": weeks, "clase": "sube", **{f: 0.0 for f in BASE_FEATURES}})
     used = np.concatenate(blocks(gold, test_weeks=20))
     assert used.max() < weeks[-20] and len(set(used)) == 5 * 14
+
+
+def test_low_confidence_is_not_recommended():
+    from src.model.predict import recommend
+
+    prediction = pd.Series(["sube", "baja", "estable", "sube"])
+    rec, signal = recommend(prediction, [0.62, 0.41, 0.45, 0.50], 0.50)
+    assert rec.tolist() == ["sube", "estable", "estable", "sube"]
+    assert signal.tolist() == ["clara", "debil", "debil", "clara"]
+
+
+def test_clear_signal_reports_coverage_and_accuracy():
+    from src.model.metrics import clear_signal
+
+    proba = np.array([[0.7, 0.2, 0.1], [0.4, 0.3, 0.3], [0.1, 0.1, 0.8], [0.2, 0.6, 0.2]])
+    out = clear_signal(["baja", "sube", "baja", "estable"], ["baja", "baja", "sube", "estable"], proba, 0.5)
+    assert out == {"cobertura_senal_clara": 0.75, "accuracy_senal_clara": 0.6667}
+
+
+def test_alerts_carry_the_signal(bronze):
+    bronze["model"]["min_confidence"] = 0.5
+    main.run(bronze, download=False)
+    from src.load.load_database import read_table
+
+    alerts = read_table("alertas", bronze["paths"]["database"])
+    weak = alerts[alerts["confianza"] < 0.5]
+    assert set(alerts["senal"]) <= {"clara", "debil"}
+    assert (weak["recomendacion"] == "estable").all() and (weak["accion"] == "Compra normal").all()
+    assert "recomendacion" in read_table("predicciones", bronze["paths"]["database"])

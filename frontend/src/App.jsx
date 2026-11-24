@@ -10,7 +10,7 @@ const API = "/api";
 const ACTION = {
   sube: { text: "Compra ya", icon: "🛒", why: "se espera que suba", className: "chip ya" },
   baja: { text: "Espera", icon: "⏳", why: "se espera que baje", className: "chip espera" },
-  estable: { text: "Como siempre", icon: "👌", why: "no se espera un cambio importante", className: "chip normal" },
+  estable: { text: "Como siempre", icon: "👌", why: "sin cambio importante o sin señal clara", className: "chip normal" },
 };
 const ORDER = ["sube", "baja", "estable"];
 
@@ -71,7 +71,11 @@ const local = {
   read() { try { return JSON.parse(localStorage.getItem(LIST_KEY)); } catch { return null; } },
   write(body) { try { localStorage.setItem(LIST_KEY, JSON.stringify(body)); } catch { /* sin almacenamiento: la lista dura lo que dure la pestaña */ } },
 };
-const putList = (body) => api("/lista", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+// Lo que se muestra es la recomendación: la clase del modelo solo cuando tuvo confianza
+// suficiente. Con poca confianza el producto queda "sin señal clara" y se compra como siempre
+const asShown = (a) => ({ ...a, modelo: a.prediccion, prediccion: a.recomendacion ?? a.prediccion, weak: a.senal === "debil" });
+const shownList = (l) => ({ ...l, items: l.items.map(asShown) });
+const putList = (body) => api("/lista", { method: "PUT", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }).then(shownList);
 
 async function api(path, options) {
   const res = await fetch(API + path, options);
@@ -93,7 +97,8 @@ export default function App() {
       .then(async ([a, b, m, l, v]) => {
         local.on = !!v.publico;
         const mine = local.on && local.read();
-        if (mine?.items?.length) l = await putList(mine);
+        l = mine?.items?.length ? await putList(mine) : shownList(l);
+        a = a.map(asShown);
         setAlerts(a);
         setBulletin(b);
         setModel(m.produccion);
@@ -141,6 +146,13 @@ export default function App() {
           Precios mayoristas de la central Cavasa (Cali) publicados por el SIPSA – DANE, en pesos por kilo.
           Las proyecciones son estimaciones{model ? ` del modelo ${model.version}` : ""}: el precio real puede cambiar.
         </p>
+        {model?.metricas?.modelo?.accuracy_senal_clara != null && (
+          <p>
+            Solo decimos "compra ya" o "espera" cuando el modelo tiene una señal clara. En las últimas {" "}
+            {model.metricas.modelo.n / alerts.length} semanas de prueba eso pasó en {Math.round(model.metricas.modelo.cobertura_senal_clara * 100)} % de los casos,
+            y acertó {Math.round(model.metricas.modelo.accuracy_senal_clara * 100)} % de las veces.
+          </p>
+        )}
       </footer>
 
       <DetailDialog alert={product ? byProduct[product] : null} onClose={() => setProduct(null)} />
@@ -365,7 +377,9 @@ function ShoppingList({ list, setList, byProduct, week, onPick }) {
                   <span>{item.producto}</span>
                   <span className="more" aria-hidden="true">›</span>
                 </button>
-                <span className={"item-action " + action.className}>{action.text}</span>
+                <span className={"item-action " + action.className} title={a.weak ? "El modelo no tiene una señal clara para este producto" : undefined}>
+                  {a.weak ? "Sin señal clara" : action.text}
+                </span>
                 <dl className="item-prices">
                   <div><dt>Último ({lastDay})</dt><dd>{pesos(a.precio)}/kg</dd></div>
                   <div><dt>Próxima semana</dt><dd>{pesos(a.precio_min_esperado)} – {pesos(a.precio_max_esperado)}</dd></div>
@@ -660,7 +674,7 @@ function Board({ alerts, week, onPick }) {
       <div className={"board-grid" + (all || filter ? " all" : "")}>
         {shown.map((a) => (
           <button key={a.producto} className="product" onClick={() => onPick(a.producto)}>
-            <span className={"tag " + ACTION[a.prediccion].className}>{ACTION[a.prediccion].text}</span>
+            <span className={"tag " + ACTION[a.prediccion].className}>{a.weak ? "Sin señal clara" : ACTION[a.prediccion].text}</span>
             <Photo name={a.producto} />
             <span className="product-name">{a.producto}</span>
             <span className="price">{pesos(a.precio)}<small>/kg</small></span>
@@ -720,7 +734,10 @@ function ProductDetail({ alert: a, onClose }) {
       <p className="detail-text">
         El último precio en Cavasa fue <strong>{pesos(a.precio)}/kg</strong> (semana del {day(a.semana_inicio)}):{" "}
         {a.cambio_1s > 0 ? "subió" : "bajó"} {pct(a.cambio_1s)} frente a la semana anterior.
-        Para la semana del {day(next)} {action.why}: entre <strong>{pesos(a.precio_min_esperado)}</strong> y{" "}
+        {a.weak
+          ? <>Para la semana del {day(next)} no hay una señal clara: el modelo se inclina por que {ACTION[a.modelo].why.replace("se espera que ", "")}, pero con poca confianza ({Math.round(a.confianza * 100)} %). Por eso la recomendación es comprar como siempre. </>
+          : <>Para la semana del {day(next)} {a.prediccion === "estable" ? "no se espera un cambio importante" : action.why}: </>}
+        entre <strong>{pesos(a.precio_min_esperado)}</strong> y{" "}
         <strong>{pesos(a.precio_max_esperado)}</strong> por kilo.
         {a.evaluadas ? ` Con este producto el modelo acertó ${a.aciertos} de las últimas ${a.evaluadas} semanas.` : ""}
       </p>

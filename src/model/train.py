@@ -11,7 +11,7 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.pipeline import Pipeline, make_pipeline
 from sklearn.preprocessing import OneHotEncoder, QuantileTransformer
 
-from src.model.metrics import classification_metrics, simulated_saving
+from src.model.metrics import classification_metrics, clear_signal, simulated_saving
 from src.transform.gold_transformations import BASE_FEATURES, FEATURES, classify
 
 ALGORITHM = "Promedio de HistGradientBoosting, ExtraTrees y red neuronal"
@@ -109,7 +109,8 @@ def train(gold, panel, cfg, logger):
     baseline = test_df["cambio_1s"].apply(classify, threshold=mcfg["threshold"])
 
     metrics = {
-        "modelo": evaluate(test_df, pred, proba),
+        "modelo": {**evaluate(test_df, pred, proba),
+                   **clear_signal(test_df["clase"], pred, proba, mcfg.get("min_confidence", 0))},
         "baseline_persistencia": evaluate(test_df, baseline),
         "baseline_estable": evaluate(test_df, ["estable"] * len(test_df)),
         "baseline_comprar_todo": evaluate(test_df, ["sube"] * len(test_df)),
@@ -149,6 +150,9 @@ def train(gold, panel, cfg, logger):
 
     test_out = test_df[["semana_inicio", "producto", "precio", "clase"]].copy()
     test_out["prediccion"] = pred
+    # Lo que se le habría recomendado: la clase solo cuando la confianza alcanza
+    clear = proba.max(axis=1) >= mcfg.get("min_confidence", 0)
+    test_out["recomendacion"] = test_out["prediccion"].where(clear, "estable")
     return entry, test_out
 
 

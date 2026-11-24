@@ -135,9 +135,12 @@ h1, h2, .big { font-family: var(--display); font-weight: 800; letter-spacing: -.
 .group.ya header { background: var(--green); color: var(--white); }
 .group.espera header { background: var(--yellow); color: var(--forest); }
 .group.normal header { background: var(--grey); color: var(--ink); }
+.group.normal header { font-size: 52px; }
+.group.normal header b { font-size: 96px; }
 .thumbs { padding: 28px 30px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
 .thumbs img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 20px; opacity: 0; }
-.on .thumbs img { animation: pop .6s calc(var(--t0) + var(--k) * .45s) cubic-bezier(.3, 1.5, .5, 1) both; }
+.thumbs.many { grid-template-columns: repeat(4, 1fr); gap: 12px; }
+.on .thumbs img { animation: pop .6s calc(var(--t0) + var(--k) * .3s) cubic-bezier(.3, 1.5, .5, 1) both; }
 
 /* ---------- 4. Cómo funciona ---------- */
 .s4 .head { position: absolute; left: 100px; top: 80px; }
@@ -284,9 +287,9 @@ h1, h2, .big { font-family: var(--display); font-weight: 800; letter-spacing: -.
       <h1 class="rise" style="--dl:.7s">¿Qué compro ya y <span class="outline forest">qué espero?</span></h1>
     </div>
     <div class="groups">
-      <div class="group ya rise" style="--dl:2.5s"><header><div>Compra ya<small>va a subir</small></div><b data-count data-to="9" style="--dur:4s;--dl:5s">0</b></header><div class="thumbs" data-group="sube" style="--t0:5s"></div></div>
-      <div class="group espera rise" style="--dl:9.5s"><header><div>Espera<small>va a bajar</small></div><b data-count data-to="7" style="--dur:3.2s;--dl:12s">0</b></header><div class="thumbs" data-group="baja" style="--t0:12s"></div></div>
-      <div class="group normal rise" style="--dl:16.5s"><header><div>Como siempre<small>sigue igual</small></div><b data-count data-to="4" style="--dur:1.8s;--dl:19s">0</b></header><div class="thumbs" data-group="estable" style="--t0:19s"></div></div>
+      <div class="group ya rise" style="--dl:2.5s"><header><div>Compra ya<small>va a subir</small></div><b data-count data-to="3" style="--dur:1.4s;--dl:5s">0</b></header><div class="thumbs" data-group="sube" style="--t0:5s"></div></div>
+      <div class="group espera rise" style="--dl:9.5s"><header><div>Espera<small>va a bajar</small></div><b data-count data-to="3" style="--dur:1.4s;--dl:12s">0</b></header><div class="thumbs" data-group="baja" style="--t0:12s"></div></div>
+      <div class="group normal rise" style="--dl:16.5s"><header><div>Como siempre<small>sin señal clara</small></div><b data-count data-to="14" style="--dur:4s;--dl:19s">0</b></header><div class="thumbs" data-group="estable" style="--t0:19s"></div></div>
     </div>
   </section>
 
@@ -336,8 +339,8 @@ h1, h2, .big { font-family: var(--display); font-weight: 800; letter-spacing: -.
     <svg class="to pop" style="--dl:5s" viewBox="0 0 64 64" fill="none" stroke="#174a2c" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 32h46M36 14l18 18-18 18"/></svg>
     <div class="year rise" style="--dl:5.6s">
       <small>Ahorro real en 20 semanas</small>
-      <b>$<span data-count data-to="248628" style="--dur:5s;--dl:6.4s">0</span></b>
-      <em>cerca de $650.000 al año</em>
+      <b>$<span data-count data-to="255878" style="--dur:5s;--dl:6.4s">0</span></b>
+      <em>cerca de $665.000 al año</em>
     </div>
     <div class="facts">
       <span class="fact rise" style="--dl:16s">Con los precios que publicó el DANE</span>
@@ -395,9 +398,10 @@ h1, h2, .big { font-family: var(--display); font-weight: 800; letter-spacing: -.
 const PHOTOS = ["tomate-chonto","platano","limon","cilantro","mora","papa-pastusa","lechuga","mango","zanahoria","aguacate","pimenton","lulo","cebolla-cabezona","yuca","maracuya","habichuela","ahuyama","tomate-arbol","cebolla-junca","papa-capira"];
 // Recomendación del boletín del 31 de octubre al 6 de noviembre de 2026
 const GROUPS = {
-  sube: ["lechuga","aguacate","platano","zanahoria","limon","cebolla-junca","cebolla-cabezona","papa-capira","papa-pastusa"],
-  baja: ["tomate-arbol","mango","pimenton","maracuya","habichuela","tomate-chonto","cilantro"],
-  estable: ["yuca","ahuyama","mora","lulo"],
+  sube: ["lechuga","aguacate","platano"],
+  baja: ["tomate-arbol","mango","pimenton"],
+  // Aquí van también los 13 en que el modelo no tiene una señal clara
+  estable: ["yuca","ahuyama","zanahoria","limon","cebolla-junca","maracuya","mora","habichuela","cebolla-cabezona","tomate-chonto","lulo","papa-capira","cilantro","papa-pastusa"],
 };
 const CARDS = [["Tomate chonto","tomate-chonto",3738],["Cebolla blanca","cebolla-cabezona",2129],["Papa pastusa","papa-pastusa",3392],["Plátano hartón","platano",2071],["Cilantro","cilantro",3854],["Limón Tahití","limon",2021]];
 const SHEET = [["Tomate chonto","Cali, Cavasa"],["Papa capira","Bogotá, Corabastos"],["Cebolla junca","Medellín, CMA"],["Plátano hartón","Cali, Santa Elena"],["Mora de Castilla","Pereira, Mercasa"],["Zanahoria","Tunja"],["Limón Tahití","Bucaramanga"],["Yuca","Barranquilla"],["Aguacate papelillo","Armenia, Mercar"],["Lulo","Neiva, Surabastos"],["Habichuela","Cúcuta, Cenabastos"],["Mango Tommy","Cartagena, Bazurto"],["Pimentón","Ibagué"],["Ahuyama","Montería"],["Maracuyá","Popayán"],["Cilantro","Pasto, El Potrerillo"]];
@@ -415,7 +419,7 @@ $("[data-strip]").forEach((el) => { el.innerHTML = (PHOTOS.map(img).join("")).re
 $("[data-dots]").forEach((el) => { el.innerHTML = Array.from({ length: 10 }, (_, k) => `<i class="${k < 7 ? "hit" : ""}" style="--k:${k}"></i>`).join(""); });
 $("[data-weeks]").forEach((el) => { el.innerHTML = [...WEEKS].map((w, k) => `<i class="${w === "-" ? "miss" : ""}" style="--k:${k}"></i>`).join(""); });
 $("[data-plates]").forEach((el) => { el.innerHTML = Array.from({ length: 5 }, (_, k) => `<i style="--k:${k}"></i>`).join(""); });
-$("[data-group]").forEach((el) => { el.innerHTML = GROUPS[el.dataset.group].map((f, k) => img(f).replace("<img", `<img style="--k:${k}"`)).join(""); });
+$("[data-group]").forEach((el) => { el.classList.toggle("many", GROUPS[el.dataset.group].length > 9); el.innerHTML = GROUPS[el.dataset.group].map((f, k) => img(f).replace("<img", `<img style="--k:${k}"`)).join(""); });
 $("[data-cards]").forEach((el) => { el.innerHTML = CARDS.map(([n, f], k) => `<div class="pcard pop" style="--dl:${1.4 + k * .25}s">${img(f)}<div class="nm">${n}</div><div class="pr"><span></span><i class="ar"></i></div></div>`).join(""); });
 $("[data-rows]").forEach((el) => {
   let html = "";

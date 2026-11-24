@@ -78,9 +78,9 @@ Llave: (`semana_inicio`, `producto`, `mercado`).
 | Tabla | Contenido |
 |---|---|
 | `precios_cali` | Silver filtrado a los mercados de Cali |
-| `alertas` | Predicción y acción de la última semana por producto, con el rango de precio esperado (`precio_min_esperado`, `precio_max_esperado`: percentiles 25 y 75 del cambio histórico del producto en esa misma clase) y los aciertos del modelo con ese producto en sus últimas 8 semanas evaluadas (`aciertos`, `evaluadas`) |
+| `alertas` | Predicción (`prediccion`, la clase del modelo), `confianza`, `senal` (`clara` o `debil` según `model.min_confidence`), `recomendacion` (la predicción si la señal es clara; si no, `estable`) y acción de la última semana por producto, con el rango de precio esperado (`precio_min_esperado`, `precio_max_esperado`: percentiles 25 y 75 del cambio histórico del producto en esa misma clase) y los aciertos del modelo con ese producto en sus últimas 8 semanas evaluadas (`aciertos`, `evaluadas`) |
 | `listas` | Lista de mercado del restaurante: `restaurante`, `producto`, `kg_semana`. La escribe la API desde el dashboard |
-| `predicciones` | Historial de predicciones con la versión del modelo. Las del backtest no tienen `confianza` |
+| `predicciones` | Historial de predicciones con la versión del modelo y la `recomendacion` que se mostró. Las del backtest no tienen `confianza` |
 | `accuracy_semanal` | Acierto por semana y cuántas de las predicciones son reales |
 | `drift` | Z-score del último cambio por producto |
 | `monitoreo` | Resumen por corrida y bandera de reentrenamiento. `accuracy_ultimas_8_semanas` incluye backtest; `predicciones_reales` y `accuracy_real` no |

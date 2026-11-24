@@ -10,6 +10,7 @@ import time
 from datetime import datetime
 from pathlib import Path
 
+from src.lista import recommendation
 from src.model.tracking import llm_span
 
 SYSTEM = """Eres el asistente de compras de AgroPrecio. Escribes para dueños de
@@ -28,7 +29,7 @@ def build_prompt(alerts):
             "producto": r["producto"],
             "precio_kg": int(r["precio"]),
             "cambio_semana_pasada_pct": round(r["cambio_1s"] * 100, 1),
-            "prediccion": r["prediccion"],
+            "prediccion": r["prediccion"] if r.get("senal", "clara") == "clara" else "sin señal clara",
             "confianza_pct": round(r["confianza"] * 100),
         }
         for _, r in alerts.iterrows()
@@ -40,14 +41,15 @@ def build_prompt(alerts):
 
 
 def template_bulletin(alerts):
-    buy = alerts[alerts["prediccion"] == "sube"]["producto"].tolist()
-    wait = alerts[alerts["prediccion"] == "baja"]["producto"].tolist()
+    rec = recommendation(alerts)
+    buy = alerts[rec == "sube"]["producto"].tolist()
+    wait = alerts[rec == "baja"]["producto"].tolist()
     parts = ["Boletín AgroPrecio de la semana."]
     if buy:
         parts.append("Conviene comprar ya: " + ", ".join(buy) + ". Se espera que suban.")
     if wait:
         parts.append("Puedes esperar con: " + ", ".join(wait) + ". Se espera que bajen.")
-    parts.append("El resto se mantiene estable. Son estimaciones con datos del SIPSA - DANE.")
+    parts.append("En el resto no hay una señal clara: compra como siempre. Son estimaciones con datos del SIPSA - DANE.")
     return " ".join(parts)
 
 

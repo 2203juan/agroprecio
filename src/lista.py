@@ -2,6 +2,14 @@
 import pandas as pd
 
 
+def recommendation(df):
+    """Lo recomendado: la clase del modelo solo cuando tuvo señal clara. Las tablas
+    anteriores a la v0.8 no traen esa columna y se usa la predicción."""
+    if "recomendacion" in df:
+        return df["recomendacion"].fillna(df["prediccion"])
+    return df["prediccion"]
+
+
 def cost_list(items, alerts):
     """items: producto y kg_semana. alerts: predicciones con rango esperado.
 
@@ -14,7 +22,7 @@ def cost_list(items, alerts):
     expected = (df["precio_min_esperado"] + df["precio_max_esperado"]) / 2
     df["costo_hoy"] = (df["kg_semana"] * df["precio"]).round()
     df["costo_proxima"] = (df["kg_semana"] * expected).round()
-    df["costo_recomendado"] = df["costo_proxima"].where(df["prediccion"] == "baja", df["costo_hoy"])
+    df["costo_recomendado"] = df["costo_proxima"].where(recommendation(df) == "baja", df["costo_hoy"])
     totals = {c: float(df[c].sum()) for c in ["costo_hoy", "costo_proxima", "costo_recomendado"]}
     return df, totals
 
@@ -45,7 +53,7 @@ def real_savings(items, history):
         return empty
     df["costo_habitual"] = df["kg_semana"] * df["precio"]
     later = df["kg_semana"] * df["precio_siguiente"]
-    df["costo_recomendado"] = later.where(df["prediccion"] == "baja", df["costo_habitual"])
+    df["costo_recomendado"] = later.where(recommendation(df) == "baja", df["costo_habitual"])
     df["costo_ideal"] = pd.concat([df["costo_habitual"], later], axis=1).min(axis=1)
 
     weeks = (df.groupby("semana_inicio", as_index=False)

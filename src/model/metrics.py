@@ -32,6 +32,15 @@ def classification_metrics(y_true, y_pred, proba=None):
     return {k: (round(float(v), 4) if isinstance(v, float) else v) for k, v in m.items()}
 
 
+def clear_signal(y_true, y_pred, proba, min_confidence):
+    """Qué parte de las predicciones tiene confianza suficiente y cuánto acierta el modelo
+    en esas, que son las únicas que se recomiendan como "compra ya" o "espera"."""
+    clear = proba.max(axis=1) >= min_confidence
+    hits = (pd.Series(list(y_true)).to_numpy() == pd.Series(list(y_pred)).to_numpy())[clear]
+    return {"cobertura_senal_clara": round(float(clear.mean()), 4),
+            "accuracy_senal_clara": round(float(hits.mean()), 4) if clear.any() else None}
+
+
 def per_class(y_true, y_pred):
     p, r, f, s = precision_recall_fscore_support(y_true, y_pred, labels=CLASSES, zero_division=0)
     return pd.DataFrame({"clase": CLASSES, "precision": p.round(4), "recall": r.round(4),
@@ -73,11 +82,14 @@ def evaluate_version(model, entry, gold, cfg):
     }
     rows = []
     for name, (p, proba) in candidates.items():
+        signal = clear_signal(y, p, proba, cfg["model"].get("min_confidence", 0)) if proba is not None else {}
         rows.append({
             "version": entry["version"], "estado": entry["estado"], "evaluado": name,
             "prueba_desde": str(test["semana_inicio"].min().date()),
             "prueba_hasta": str(test["semana_inicio"].max().date()),
             **classification_metrics(y, p, proba),
             "ahorro_simulado": round(simulated_saving(test, p), 4),
+            "cobertura_senal_clara": signal.get("cobertura_senal_clara"),
+            "accuracy_senal_clara": signal.get("accuracy_senal_clara"),
         })
     return rows, per_class(y, pred), confusion(y, pred)

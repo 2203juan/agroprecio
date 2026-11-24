@@ -43,6 +43,9 @@ products:
 
 model:
   threshold: 0.03
+  # Confianza mínima para recomendar "compra ya" o "espera". Por debajo, el producto
+  # queda "sin señal clara" y se compra como siempre
+  min_confidence: 0.50
   test_weeks: 20
   min_history_weeks: 8
   random_state: 42
