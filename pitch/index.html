@@ -330,17 +330,17 @@ h1, h2, .big { font-family: var(--display); font-weight: 800; letter-spacing: -.
   <section class="scene s5 sun" data-d="30">
     <div class="head"><h1 class="rise" style="--dl:.6s">¿Cuánto me <span class="outline forest">ahorro?</span></h1></div>
     <div class="spend rise" style="--dl:2s">
-      <small>500 almuerzos diarios, lunes a sábado</small>
-      <b>$6.890.000</b>
-      <em>de mercado a la semana · 2.205 kilos</em>
+      <small>Cevichería · 500 platos diarios, lunes a sábado</small>
+      <b>$5.350.000</b>
+      <em>de mercado a la semana · 1.680 kilos</em>
     </div>
     <div class="weeks" data-weeks></div>
-    <p class="wk rise" style="--dl:10s">15 de 20 semanas salió mejor</p>
+    <p class="wk rise" style="--dl:10s">14 de 20 semanas salió mejor</p>
     <svg class="to pop" style="--dl:5s" viewBox="0 0 64 64" fill="none" stroke="#174a2c" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 32h46M36 14l18 18-18 18"/></svg>
     <div class="year rise" style="--dl:5.6s">
       <small>Ahorro real en 20 semanas</small>
-      <b>$<span data-count data-to="2546565" style="--dur:5s;--dl:6.4s">0</span></b>
-      <em>cerca de $6.600.000 al año</em>
+      <b>$<span data-count data-to="3258885" style="--dur:5s;--dl:6.4s">0</span></b>
+      <em>cerca de $8.500.000 al año</em>
     </div>
     <div class="facts">
       <span class="fact rise" style="--dl:16s">Con los precios que publicó el DANE</span>
@@ -404,9 +404,9 @@ const GROUPS = {
 const CARDS = [["Tomate chonto","tomate-chonto",3738],["Cebolla blanca","cebolla-cabezona",2129],["Papa pastusa","papa-pastusa",3392],["Plátano hartón","platano",2071],["Cilantro","cilantro",3854],["Limón Tahití","limon",2021]];
 const SHEET = [["Tomate chonto","Cali, Cavasa"],["Papa capira","Bogotá, Corabastos"],["Cebolla junca","Medellín, CMA"],["Plátano hartón","Cali, Santa Elena"],["Mora de Castilla","Pereira, Mercasa"],["Zanahoria","Tunja"],["Limón Tahití","Bucaramanga"],["Yuca","Barranquilla"],["Aguacate papelillo","Armenia, Mercar"],["Lulo","Neiva, Surabastos"],["Habichuela","Cúcuta, Cenabastos"],["Mango Tommy","Cartagena, Bazurto"],["Pimentón","Ibagué"],["Ahuyama","Montería"],["Maracuyá","Popayán"],["Cilantro","Pasto, El Potrerillo"]];
 
-// Mercado de ejemplo (500 almuerzos diarios, lunes a sábado) en las 20 semanas de prueba:
-// "+" si seguir la recomendación salió mejor que comprar todo ya, "-" si salió más caro
-const WEEKS = "++++++-+++-+--+++++-";
+// Cevichería de ejemplo (500 platos diarios, lunes a sábado) en las 20 semanas de prueba:
+// "+" si seguir la recomendación salió mejor que comprar todo ya, "-" si salió más caro, "=" si dio igual
+const WEEKS = "++++++--++-=+-+++++-";
 
 const img = (f) => `<img src="img/${f}.webp" alt="">`;
 const rnd = (a, b) => { const x = Math.sin(a * 12.9898 + b * 78.233) * 43758.5453; return x - Math.floor(x); };
@@ -415,7 +415,7 @@ const $ = (s) => [...document.querySelectorAll(s)];
 // Piezas repetidas
 $("[data-strip]").forEach((el) => { el.innerHTML = (PHOTOS.map(img).join("")).repeat(2); });
 $("[data-dots]").forEach((el) => { el.innerHTML = Array.from({ length: 10 }, (_, k) => `<i class="${k < 7 ? "hit" : ""}" style="--k:${k}"></i>`).join(""); });
-$("[data-weeks]").forEach((el) => { el.innerHTML = [...WEEKS].map((w, k) => `<i class="${w === "-" ? "miss" : ""}" style="--k:${k}"></i>`).join(""); });
+$("[data-weeks]").forEach((el) => { el.innerHTML = [...WEEKS].map((w, k) => `<i class="${w === "+" ? "" : "miss"}" style="--k:${k}"></i>`).join(""); });
 $("[data-plates]").forEach((el) => { el.innerHTML = Array.from({ length: 5 }, (_, k) => `<i style="--k:${k}"></i>`).join(""); });
 $("[data-group]").forEach((el) => { el.classList.toggle("many", GROUPS[el.dataset.group].length > 9); el.innerHTML = GROUPS[el.dataset.group].map((f, k) => img(f).replace("<img", `<img style="--k:${k}"`)).join(""); });
 $("[data-cards]").forEach((el) => { el.innerHTML = CARDS.map(([n, f], k) => `<div class="pcard pop" style="--dl:${1.4 + k * .25}s">${img(f)}<div class="nm">${n}</div><div class="pr"><span></span><i class="ar"></i></div></div>`).join(""); });
