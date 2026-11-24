@@ -6,6 +6,8 @@ Cali, que le dan al modelo más ejemplos de cómo se mueven los precios en la ci
 import numpy as np
 import pandas as pd
 
+from src.transform.diario import DAILY_FEATURES, add_daily_features
+
 # Variables de las versiones v0.1 a v0.5. Una fila es evaluable si las tiene todas
 BASE_FEATURES = ["cambio_1s", "cambio_2s", "cambio_4s", "vs_media_4s",
                  "vs_nacional", "cambio_nacional_1s", "mes"]
@@ -21,7 +23,10 @@ MARKET = ["mediana_cambio_nacional", "mediana_cambio_nacional_hace_1", "cambio_n
           "cambio_relativo", "cambio_corabastos", "vs_corabastos", "cambio_regional",
           "vs_regional", "cambio_grupo"]
 SEASON = ["estacion_sen", "estacion_cos", "mes"]
-FEATURES = OWN + MARKET + SEASON
+# Las de v0.6, que salen solo del boletín semanal
+WEEKLY_FEATURES = OWN + MARKET + SEASON
+# Desde v0.7 se suma cómo cerró la semana según el diario del SIPSA
+FEATURES = WEEKLY_FEATURES + DAILY_FEATURES
 
 REFERENCE_MARKET = "Bogotá, D.C., Corabastos"
 REGION = "Valle del Cauca|Armenia|Pereira|Popayán"
@@ -107,8 +112,9 @@ def add_market_context(df, market):
     return df.drop(columns=["_corabastos", "_regional"])
 
 
-def build_panel(silver, market, products, threshold):
-    """Variables y objetivo para los mercados de Cali (incluye `market`)."""
+def build_panel(silver, market, products, threshold, daily=None):
+    """Variables y objetivo para los mercados de Cali (incluye `market`).
+    daily: precios diarios en silver. Sin ellos, las variables del diario quedan vacías."""
     # En silver los textos son categorías; aquí quedan como texto normal
     df = silver.loc[silver["producto"].isin(products),
                     ["semana_inicio", "grupo", "producto", "mercado", "precio_min", "precio_max",
@@ -126,9 +132,11 @@ def build_panel(silver, market, products, threshold):
     df["estacion_sen"], df["estacion_cos"] = np.sin(angle), np.cos(angle)
     df["mes"] = df["semana_inicio"].dt.month
     city = market.split(",")[0]
-    keep = ["mercado", "producto", "grupo", "semana_inicio", "precio", "precio_nacional", *FEATURES,
+    keep = ["mercado", "producto", "grupo", "semana_inicio", "precio", "precio_nacional", *WEEKLY_FEATURES,
             "precio_siguiente", "cambio_siguiente", "clase"]
-    return df.loc[df["mercado"].str.startswith(city), keep].reset_index(drop=True)
+    panel = add_daily_features(df.loc[df["mercado"].str.startswith(city), keep], daily)
+    target = ["precio_siguiente", "cambio_siguiente", "clase"]
+    return panel[[c for c in panel if c not in target] + target].reset_index(drop=True)
 
 
 def gold_from_panel(panel, market):
@@ -136,5 +144,5 @@ def gold_from_panel(panel, market):
     return gold.sort_values(["producto", "semana_inicio"]).reset_index(drop=True)
 
 
-def build_gold(silver, market, products, threshold):
-    return gold_from_panel(build_panel(silver, market, products, threshold), market)
+def build_gold(silver, market, products, threshold, daily=None):
+    return gold_from_panel(build_panel(silver, market, products, threshold, daily), market)

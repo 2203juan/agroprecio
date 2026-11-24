@@ -31,8 +31,18 @@ def check_gold(df, products):
         ("sin_nulos_en_precio", bool(df["precio"].notna().all())),
         ("una_fila_por_producto_y_semana", not df.duplicated(["producto", "semana_inicio"]).any()),
         ("clases_validas", bool(df["clase"].dropna().isin(["sube", "baja", "estable"]).all())),
+        ("diario_en_la_ultima_semana", daily_coverage(df) >= 0.5),
     ]
     return to_frame("gold", checks, len(df))
+
+
+def daily_coverage(gold):
+    """Parte de los productos de la última semana que tienen el precio de cierre del diario.
+    Si el servicio del DANE falla, el modelo predice sin su mejor variable: hay que saberlo."""
+    if "pais_cierre_vs_media" not in gold:
+        return 0.0
+    latest = gold[gold["semana_inicio"] == gold["semana_inicio"].max()]
+    return float(latest["pais_cierre_vs_media"].notna().mean())
 
 
 def to_frame(layer, checks, rows):

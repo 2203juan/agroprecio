@@ -56,7 +56,7 @@ El DANE publica los viernes, pero a veces con rezago: el 22 de noviembre de 2026
 | Restaurantes a los que les sirvió | Negocio | Respuesta a "¿te sirvió?" | Tabla `opiniones`, Grafana |
 | Días desde el último boletín | Datos | Fecha de hoy menos el fin del boletín | `GET /vigencia`, Grafana |
 | Ahorro simulado | Negocio | Compra anticipada cuando el modelo dice "sube" frente a comprar la semana siguiente | `registry.json` |
-| Reglas de calidad que pasan | Datos | 11 reglas por corrida | Tabla `calidad_datos` |
+| Reglas de calidad que pasan | Datos | 12 reglas por corrida | Tabla `calidad_datos` |
 | Productos con drift | Datos | z-score del cambio semanal > 3 | Tabla `drift` |
 | Boletines del LLM descartados por cifras inventadas | LLM | Validación de números contra los datos | `logs/llm.jsonl` |
 | Tiempo de corrida del pipeline | Operación | Log | `logs/pipeline.log` (~25 s sin descarga) |

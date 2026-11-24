@@ -40,7 +40,7 @@ Fue una iteración intensiva, no sprints de una semana. Las versiones v0.1 a v0.
 
 | Historia | Hecho cuando |
 |---|---|
-| Como equipo, quiero saber si los datos llegaron bien | 11 reglas de calidad guardadas por corrida |
+| Como equipo, quiero saber si los datos llegaron bien | 12 reglas de calidad guardadas por corrida |
 | Como equipo, quiero comparar modelos de forma justa | Corte temporal y registro de versiones con métricas |
 | Como restaurante, quiero ver las recomendaciones | API y dashboard en React |
 

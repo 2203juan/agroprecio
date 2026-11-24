@@ -66,7 +66,7 @@ def test_monitoring_separates_real_predictions(client):
 def test_prometheus_metrics(client):
     client.post("/opiniones", json={"util": True})
     text = client.get("/prometheus").text
-    assert 'agroprecio_reglas_calidad{estado="ok"} 11.0' in text
+    assert 'agroprecio_reglas_calidad{estado="ok"} 12.0' in text
     assert 'agroprecio_opiniones{respuesta="util"} 1.0' in text
     assert 'agroprecio_modelo_metrica{evaluado="modelo",metrica="f1_macro"}' in text
     assert "\nagroprecio_accuracy_real " not in text  # sin dato no se publica un cero falso

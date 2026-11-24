@@ -2,8 +2,9 @@ import pandas as pd
 
 
 from src.quality import check_gold, check_silver
+from src.transform.diario import clean_daily
 from src.transform.gold_transformations import build_gold
-from tests.conftest import PRODUCTS
+from tests.conftest import PRODUCTS, raw_daily
 
 
 def failed(result):
@@ -12,8 +13,14 @@ def failed(result):
 
 def test_clean_data_passes_all_rules(silver):
     assert failed(check_silver(silver)) == set()
-    gold = build_gold(silver, "Cali, Cavasa", PRODUCTS, 0.03)
+    daily = clean_daily(raw_daily(silver["semana_inicio"].drop_duplicates()))
+    gold = build_gold(silver, "Cali, Cavasa", PRODUCTS, 0.03, daily)
     assert failed(check_gold(gold, PRODUCTS)) == set()
+
+
+def test_warns_when_the_daily_prices_are_missing(silver):
+    gold = build_gold(silver, "Cali, Cavasa", PRODUCTS, 0.03)
+    assert failed(check_gold(gold, PRODUCTS)) == {"diario_en_la_ultima_semana"}
 
 
 def test_detects_negative_prices(silver):

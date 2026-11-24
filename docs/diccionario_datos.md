@@ -21,6 +21,26 @@ La semana se toma del título del índice, por ejemplo "Boletín semanal precios
 
 `manifest.csv`: `doc_id`, `title`, `file`, `url`, `bytes`, `downloaded_at`.
 
+## Bronze: precios diarios del SIPSA
+
+`data/bronze/diario/sipsa_diario.parquet`: la respuesta del servicio web del DANE (`promediosSipsaParcial`), tal como llega y como texto. Una fila por día, producto y mercado, desde febrero de 2020; unas 714 mil filas. Se reemplaza completa, como máximo una vez al día, porque el servicio no recibe filtros.
+
+| Columna | Descripción |
+|---|---|
+| `enmaFecha` | Día de mercado |
+| `artiNombre` | Producto. El asterisco marca "variedad predominante en el mercado" |
+| `fuenNombre` | Central mayorista (26) |
+| `grupNombre` | Grupo de alimentos |
+| `promedioKg`, `minimoKg`, `maximoKg` | Pesos por kilo |
+
+`descargas.csv` guarda la fecha de cada descarga, las filas y el rango de días.
+
+Cavasa tiene mercado lunes y jueves; Corabastos, de lunes a viernes. Trae unos 37 productos: no incluye cilantro, y la yuca, la papa parda y la zanahoria de Cavasa no corresponden a las del boletín semanal.
+
+## Silver: `data/silver/diario.parquet`
+
+`fecha`, `producto`, `mercado`, `precio`, `precio_min` y `precio_max`, con nombres limpios, precios numéricos mayores que cero y sin duplicados. Llave: (`fecha`, `producto`, `mercado`).
+
 ## Silver: `data/silver/precios.parquet`
 
 Los textos se guardan como categorías para ocupar menos memoria.
@@ -46,7 +66,7 @@ Llave: (`semana_inicio`, `producto`, `mercado`).
 | `producto`, `grupo`, `semana_inicio` | Llave y grupo |
 | `precio` | Precio medio en Cavasa |
 | `precio_nacional` | Mediana del precio medio en todos los mercados |
-| 33 columnas numéricas | Variables del modelo, agrupadas en `OWN`, `MARKET` y `SEASON` en `src/transform/gold_transformations.py` y descritas en la [model card](model_card.md) |
+| 42 columnas numéricas | Variables del modelo: `OWN`, `MARKET` y `SEASON` en `src/transform/gold_transformations.py`, y las nueve del diario (`DAILY_FEATURES`) en `src/transform/diario.py`. Están descritas en la [model card](model_card.md) |
 | `precio_siguiente` | Precio de la semana siguiente (vacío si esa semana no existe) |
 | `cambio_siguiente` | Cambio porcentual hacia la semana siguiente |
 | `clase` | `sube`, `baja` o `estable` |

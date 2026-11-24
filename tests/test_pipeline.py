@@ -31,7 +31,7 @@ def test_stages_one_by_one_give_the_same_result(bronze, tmp_path):
 def test_quality_rules_of_a_run_share_the_date(bronze):
     main.run(bronze, download=False)
     quality = read_table("calidad_datos", bronze["paths"]["database"])
-    assert quality["fecha"].nunique() == 1 and len(quality) == 11
+    assert quality["fecha"].nunique() == 1 and len(quality) == 12
 
 
 def test_critical_quality_failure_stops_before_publishing(bronze, monkeypatch):

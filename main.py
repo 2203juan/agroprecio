@@ -17,14 +17,16 @@ import pandas as pd
 import yaml
 from dotenv import load_dotenv
 
+from src.extract.extract_diario import download_daily, extract_daily
 from src.extract.extract_excel import download_bulletins, extract_all
 from src.llm.boletin import generate_bulletin
 from src.load.load_database import read_table, save_table
 from src.model import monitor, tracking
 from src.model.predict import add_backtest, add_to_log, expected_range, predict_latest
-from src.model.train import load_production, train
+from src.model.train import ALGORITHM, load_production, train, training_rows, usable_features
 from src.quality import CRITICAL, check_gold, check_silver
 from src.transform.clean_excel import clean_bulletins
+from src.transform.diario import clean_daily
 from src.transform.gold_transformations import build_panel, gold_from_panel
 
 
@@ -43,6 +45,10 @@ def silver_path(cfg):
     return Path(cfg["paths"]["silver"]) / "precios.parquet"
 
 
+def daily_path(cfg):
+    return Path(cfg["paths"]["silver"]) / "diario.parquet"
+
+
 def gold_path(cfg):
     return Path(cfg["paths"]["gold"]) / "features.parquet"
 
@@ -53,17 +59,24 @@ def panel_path(cfg):
 
 def stage_descargar(cfg, log):
     download_bulletins(cfg, log)
+    download_daily(cfg, log)
 
 
 def stage_silver(cfg, log):
     silver = clean_bulletins(extract_all(cfg, log))
     silver.to_parquet(silver_path(cfg), index=False)
     log.info("Silver: %s filas", len(silver))
+    raw_daily = extract_daily(cfg)
+    if raw_daily is not None:
+        daily = clean_daily(raw_daily)
+        daily.to_parquet(daily_path(cfg), index=False)
+        log.info("Silver diario: %s filas hasta el %s", len(daily), daily["fecha"].max().date())
 
 
 def stage_gold(cfg, log):
+    daily = pd.read_parquet(daily_path(cfg)) if daily_path(cfg).exists() else None
     panel = build_panel(pd.read_parquet(silver_path(cfg)), cfg["market"], cfg["products"],
-                        cfg["model"]["threshold"])
+                        cfg["model"]["threshold"], daily)
     gold = gold_from_panel(panel, cfg["market"])
     panel.to_parquet(panel_path(cfg), index=False)
     gold.to_parquet(gold_path(cfg), index=False)
@@ -100,8 +113,15 @@ def stage_modelo(cfg, log, retrain=False):
         and bool(last_monitor["requiere_reentrenar"].iloc[-1])
         and str(gold.dropna(subset=["clase"])["semana_inicio"].max().date()) > entry["datos"]["hasta"]
     )
-    if retrain or model is None or asked_retrain:
-        entry, backtest = train(gold, pd.read_parquet(panel_path(cfg)), cfg, log)
+    panel = pd.read_parquet(panel_path(cfg))
+    # O si el código trae otra receta: otro algoritmo o variables que el modelo no conoce
+    new_recipe = entry is not None and (
+        entry["parametros"].get("algoritmo") != ALGORITHM
+        or set(usable_features(training_rows(panel))) != set(entry["features"]))
+    if new_recipe:
+        log.info("La receta del modelo cambió frente a %s: se reentrena", entry["version"])
+    if retrain or model is None or asked_retrain or new_recipe:
+        entry, backtest = train(gold, panel, cfg, log)
         if entry["estado"] == "produccion":
             backtest["modelo_version"] = entry["version"]
             backtest["confianza"] = None

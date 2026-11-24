@@ -7,7 +7,7 @@ from openpyxl import Workbook
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-PRODUCTS = ["Tomate chonto", "Cilantro"]
+PRODUCTS = ["Tomate chonto", "Cilantro"]  # el diario trae tomate, pero no cilantro
 
 
 def write_bulletin(path, title, rows):
@@ -91,7 +91,28 @@ def bronze(cfg):
                 price = round((3000 + [0, 400, 400, 800][(w + p) % 4]) * factor)  # sube, estable, sube, baja
                 rows.append((product, market, price - 100, price + 100, price, "="))
         write_bulletin(Path(cfg["paths"]["bronze"]) / f"sipsa_{w:04d}.xlsx", weekly_title(week), rows)
+    folder = Path(cfg["paths"]["bronze"]) / "diario"
+    folder.mkdir()
+    raw_daily(pd.date_range("2026-01-03", periods=40, freq="7D")).to_parquet(folder / "sipsa_diario.parquet")
     return cfg
+
+
+def raw_daily(weeks, products=("Tomate", "Aguacate")):
+    """Diario como lo entrega el servicio del DANE (todo texto): Cavasa lunes y jueves,
+    Corabastos de lunes a viernes. El jueves cierra 4 % por encima del lunes."""
+    rows = []
+    for w, week in enumerate(weeks):
+        for p, product in enumerate(products):
+            base = 3000 + [0, 400, 400, 800][(w + p) % 4]
+            for market, days in [("Cali, Cavasa", (2, 5)), ("Bogotá, D.C., Corabastos", (2, 3, 4, 5, 6))]:
+                for k, offset in enumerate(days):
+                    price = round(base * (0.98 + 0.04 * k / (len(days) - 1)))
+                    rows.append({
+                        "enmaFecha": f"{(week + pd.Timedelta(days=offset)).date()}T00:00:00-05:00",
+                        "artiNombre": product + "*", "fuenNombre": market, "grupNombre": "FRUTAS",
+                        "promedioKg": str(price), "minimoKg": str(price - 100), "maximoKg": str(price + 100),
+                    })
+    return pd.DataFrame(rows)
 
 
 @pytest.fixture(autouse=True)

@@ -26,7 +26,8 @@ En un despliegue con Docker, la API también corre el pipeline: con el botón *B
 | Trazabilidad del dato crudo | `data/bronze/manifest.csv` guarda el id del documento, título, URL, tamaño y fecha de descarga de cada Excel |
 | Descarga incremental | Solo se bajan los boletines que no están en bronze |
 | Datos inmutables en bronze | Los Excel no se modifican; toda limpieza pasa a silver |
-| Calidad automática | 11 reglas en `src/quality.py` (nulos, precios positivos, mínimo ≤ máximo, duplicados, semanas de 7 días, productos presentes, clases válidas…) |
+| Calidad automática | 12 reglas en `src/quality.py` (nulos, precios positivos, mínimo ≤ máximo, duplicados, semanas de 7 días, productos presentes, clases válidas, diario disponible en la última semana…) |
+| Segunda fuente | Los precios diarios llegan por el servicio web del SIPSA, una vez al día como máximo. Si falla o llega incompleto, se conserva la descarga anterior y el pipeline sigue |
 | Historial de calidad | Cada corrida agrega sus resultados a la tabla `calidad_datos` |
 | Freno de emergencia | Si fallan las reglas críticas, el pipeline se detiene antes de entrenar o publicar |
 | Configuración separada del código | Mercado, productos, umbrales y rutas en `config/config.yaml` |
