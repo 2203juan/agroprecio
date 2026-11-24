@@ -22,7 +22,7 @@ Se puede cargar en el [Data Innovation Board](https://juankidd.github.io/databoa
 
 ## 02 · Idear: diseñar una solución viable
 
-**Idea basada en datos.** Un servicio que cada semana predice si 20 insumos clave van a subir, bajar o seguir estables en Cavasa, y lo traduce a una recomendación de compra que redacta Claude.
+**Idea basada en datos.** Un servicio que cada semana predice si 20 insumos clave van a subir, bajar o seguir estables en Cavasa, y lo traduce a una recomendación de compra que redacta un modelo de lenguaje.
 
 **Datos adicionales.**
 - Abastecimiento semanal por grupo de alimentos (hoja 1.10). Solo viene en los boletines recientes, así que todavía no alcanza para entrenar.
@@ -34,7 +34,7 @@ Se puede cargar en el [Data Innovation Board](https://juankidd.github.io/databoa
 **Prototipo y tecnología.**
 - MVP: pipeline medallón en Python (Excel → Parquet → SQLite) con un baseline de persistencia.
 - Alpha: Random Forest con registro de versiones, API en FastAPI y dashboard en React.
-- Beta: boletín con Claude, monitoreo de acierto y drift, CI/CD con GitHub Actions y todo en Docker.
+- Beta: boletín con un modelo de lenguaje, monitoreo de acierto y drift, CI/CD con GitHub Actions y todo en Docker.
 - v0.5: MLflow, Prometheus, Grafana y Airflow; opinión del usuario y aviso de vigencia.
 - v0.6: modelo nuevo elegido con validación en el tiempo.
 - v0.7: se suman los precios diarios del SIPSA. El acierto pasa de 48 % a 54 %.

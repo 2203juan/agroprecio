@@ -40,7 +40,7 @@ El orden de trabajo fue el que sugiere la herramienta: primero clientes y propue
 - DANE (SIPSA) como fuente pública de datos.
 - Corporación de Abastecimientos del Valle (Cavasa) y comerciantes mayoristas.
 - Asociaciones de restaurantes y la Cámara de Comercio de Cali.
-- Anthropic (API de Claude) para redactar los boletines.
+- Proveedor del modelo de lenguaje (por API) para redactar los boletines.
 - Proveedores de WhatsApp Business API.
 
 ## 02 · Actividades clave
@@ -57,7 +57,7 @@ El orden de trabajo fue el que sugiere la herramienta: primero clientes y propue
 
 ## 08 · Estructura de costos
 - Infraestructura casi nula: SQLite, contenedores y GitHub Actions.
-- Llamadas a la API de Claude: un boletín por semana y por segmento, con un costo de centavos de dólar.
+- Llamadas a la API del modelo de lenguaje: un boletín por semana y por segmento, con un costo de centavos de dólar.
 - Mensajería de WhatsApp Business por mensaje enviado.
 - Tiempo del equipo para mantenimiento y para conseguir usuarios.
 

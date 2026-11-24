@@ -637,7 +637,7 @@ function Bulletin({ bulletin, alerts, onPick }) {
       <details>
         <summary>Leer el texto para enviar</summary>
         <p className="bulletin">{bulletin.texto}</p>
-        <p className="muted small">Redactado con {bulletin.fuente === "claude" ? "Claude" : "la plantilla de AgroPrecio"}.</p>
+        <p className="muted small">Redactado con {bulletin.fuente === "llm" ? "un modelo de lenguaje" : "la plantilla de AgroPrecio"}.</p>
       </details>
       <div className="share">
         <WhatsApp text={bulletin.texto}>Enviar por WhatsApp</WhatsApp>

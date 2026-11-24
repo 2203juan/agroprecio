@@ -2,7 +2,7 @@
 
 Alertas semanales de compra para restaurantes pequeños de Cali, basadas en los precios mayoristas de Cavasa que publica el DANE (SIPSA).
 
-Cada semana AgroPrecio descarga el boletín del SIPSA, predice si el precio de 20 insumos frescos va a **subir, bajar o seguir estable** la semana siguiente y le dice al dueño del restaurante qué le conviene comprar ya y qué puede esperar. Claude puede redactar el mensaje en lenguaje sencillo; sin clave de API se usa una plantilla.
+Cada semana AgroPrecio descarga el boletín del SIPSA, predice si el precio de 20 insumos frescos va a **subir, bajar o seguir estable** la semana siguiente y le dice al dueño del restaurante qué le conviene comprar ya y qué puede esperar. Un modelo de lenguaje puede redactar el mensaje en lenguaje sencillo; sin clave de API se usa una plantilla.
 
 ![arquitectura](docs/img/arquitectura.svg)
 
@@ -26,7 +26,7 @@ En el registro, la versión en producción tiene el alias `champion` y las anter
 
 ### Prometheus y Grafana
 
-El tablero reúne modelo, datos y producto. Muestra lo que está bien y lo que no: la recomendación está vencida y ninguna predicción real tiene resultado. Todavía no hay opiniones ni boletines de Claude, y el tráfico de la captura es de prueba.
+El tablero reúne modelo, datos y producto. Muestra lo que está bien y lo que no: la recomendación está vencida y ninguna predicción real tiene resultado. Todavía no hay opiniones ni boletines redactados por el modelo de lenguaje, y el tráfico de la captura es de prueba.
 
 ![Tablero de Grafana](docs/img/grafana.png)
 
@@ -58,7 +58,7 @@ El dashboard (http://localhost:8080) está pensado para el dueño del restaurant
 4. **Buscar boletín nuevo.** Cuando el DANE publica un boletín, el enlace lo descarga y corre todo el pipeline, mostrando el progreso. Además, la API lo hace sola cada sábado a las 8 a.m. (`update` en `config/config.yaml`).
 5. **Todos los precios de Cavasa.** Una tarjeta por cada uno de los 20 productos, con su precio, el cambio de la última semana y la recomendación. Se puede filtrar por recomendación.
 6. **Detalle por producto.** Al tocar un producto se abre un panel con los últimos 6 meses en Cavasa frente a la mediana nacional y el rango esperado para la próxima semana.
-7. **Boletín de la semana.** Los 20 productos en tres listas cortas, y el texto redactado por Claude o con la plantilla, listo para enviar por WhatsApp o copiar.
+7. **Boletín de la semana.** Los 20 productos en tres listas cortas, y el texto redactado por el modelo de lenguaje o con la plantilla, listo para enviar por WhatsApp o copiar.
 8. **¿Te sirvió esta semana?** La respuesta queda guardada y se ve en Grafana.
 
 Si la semana recomendada ya pasó porque el DANE va atrasado, el dashboard lo avisa.
@@ -187,7 +187,7 @@ Un modelo solo pasa a producción si le gana al baseline. Las versiones quedan e
 - **Airflow:** el DAG `agroprecio_semanal` corre una tarea por etapa, miércoles y sábado.
 - **Pipeline semanal** (`.github/workflows/pipeline_semanal.yml`): corre miércoles y sábado, baja el boletín nuevo y publica la base y el registro del modelo como artefactos.
 - **Monitoreo:** se cruza cada predicción con lo que realmente pasó, se calcula el acierto de las últimas 8 semanas (y aparte el de las predicciones reales) y se marca drift cuando un cambio de precio es atípico (z > 3). Si el acierto cae por debajo de 0,40 y hay datos nuevos, el siguiente run reentrena.
-- **LLM:** cada llamada a Claude queda en `logs/llm.jsonl` con prompt, respuesta, tokens y latencia. Si el texto trae precios que no están en los datos, se descarta y se usa la plantilla. Sin API key, el producto funciona igual con la plantilla.
+- **LLM:** cada llamada al modelo de lenguaje queda en `logs/llm.jsonl` con prompt, respuesta, tokens y latencia. Si el texto trae precios que no están en los datos, se descarta y se usa la plantilla. Sin API key, el producto funciona igual con la plantilla.
 
 Detalle en [docs/05_operacion.md](docs/05_operacion.md).
 
@@ -201,7 +201,7 @@ Detalle en [docs/05_operacion.md](docs/05_operacion.md).
 │   ├── transform/           # limpieza (silver) y variables (gold)
 │   ├── load/                # SQLite
 │   ├── model/               # entrenamiento, predicción, monitoreo y MLflow
-│   ├── llm/                 # boletín con Claude
+│   ├── llm/                 # boletín con un modelo de lenguaje
 │   ├── quality.py           # reglas de calidad de datos
 │   ├── vigencia.py          # si la recomendación sigue vigente
 │   └── opiniones.py         # respuestas a "¿te sirvió?"

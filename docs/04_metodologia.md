@@ -52,7 +52,7 @@ Fue una iteración intensiva, no sprints de una semana. Las versiones v0.1 a v0.
 
 | Historia | Hecho cuando |
 |---|---|
-| Como restaurante, quiero un mensaje corto y no una tabla | Boletín con Claude y plantilla de respaldo |
+| Como restaurante, quiero un mensaje corto y no una tabla | Boletín con un modelo de lenguaje y plantilla de respaldo |
 | Como equipo, quiero saber si el modelo se está degradando | Acierto semanal, drift y regla de reentrenamiento |
 | Como equipo, quiero que cualquiera lo pueda correr | Docker Compose, CI y pipeline semanal en GitHub Actions |
 

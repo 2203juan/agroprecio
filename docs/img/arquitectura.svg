@@ -30,7 +30,7 @@
     <text x="560" y="190" text-anchor="middle" fill="#6b746e">features + SQLite</text>
 
     <rect x="240" y="238" width="380" height="36" rx="8" fill="#e3f1e8" stroke="#9fcbb0"/>
-    <text x="430" y="261" text-anchor="middle">calidad · modelo · predicción y monitoreo · boletín (Claude)</text>
+    <text x="430" y="261" text-anchor="middle">calidad · modelo · predicción y monitoreo · boletín (LLM)</text>
 
     <rect x="690" y="140" width="110" height="70" rx="8" fill="#e3ecf7" stroke="#9db6d8"/>
     <text x="745" y="170" text-anchor="middle" font-weight="bold">API</text>

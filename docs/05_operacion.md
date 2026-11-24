@@ -13,7 +13,7 @@ Mié y sáb 8 a.m.    GitHub Actions corre pipeline_semanal.yml
              ├─ predice la semana y guarda alertas
              ├─ copia a MLflow las versiones nuevas del modelo (si hay servidor)
              ├─ calcula acierto y drift
-             ├─ genera el boletín con Claude
+             ├─ genera el boletín con el modelo de lenguaje
              └─ publica la base, el registro y los logs como artefactos
 ```
 

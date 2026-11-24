@@ -27,5 +27,5 @@ El [Business Model Canvas](02_canvas.md) describe el negocio. Este lienzo descri
 |---|---|
 | El modelo se equivoca más de la mitad de las veces | Cada producto muestra cuántas de sus últimas 8 semanas acertó y el rango esperado |
 | La recomendación está vencida | Aviso en el dashboard y alerta `RecomendacionVencida` en Prometheus |
-| Claude escribe un precio que no existe | `numbers_are_grounded` descarta el texto y se usa la plantilla |
+| El modelo de lenguaje escribe un precio que no existe | `numbers_are_grounded` descarta el texto y se usa la plantilla |
 | El modelo se degrada | Acierto de las últimas 8 semanas, drift y regla de reentrenamiento |

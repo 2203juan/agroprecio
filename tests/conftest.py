@@ -117,6 +117,6 @@ def raw_daily(weeks, products=("Tomate", "Aguacate")):
 
 @pytest.fixture(autouse=True)
 def sin_servicios_externos(monkeypatch):
-    """Ningún test llama a Claude ni a MLflow."""
+    """Ningún test llama al modelo de lenguaje ni a MLflow."""
     monkeypatch.delenv("ANTHROPIC_API_KEY", raising=False)
     monkeypatch.delenv("MLFLOW_TRACKING_URI", raising=False)

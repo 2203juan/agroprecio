@@ -104,16 +104,16 @@ class ProductCollector:
     def llm(self):
         lines = self.llm_log.read_text(encoding="utf-8").splitlines() if self.llm_log.exists() else []
         records = [json.loads(line) for line in lines if line.strip()]
-        sources = {("claude",): 0, ("plantilla",): 0}
+        sources = {("llm",): 0, ("plantilla",): 0}
         for r in records:
             sources[(r["fuente"],)] = sources.get((r["fuente"],), 0) + 1
         yield gauge("boletines", "Boletines generados por fuente", sources, ["fuente"])
-        yield gauge("llm_tokens", "Tokens de Claude acumulados", {
+        yield gauge("llm_tokens", "Tokens del modelo de lenguaje acumulados", {
             ("entrada",): sum(r.get("tokens_entrada", 0) for r in records),
             ("salida",): sum(r.get("tokens_salida", 0) for r in records)}, ["tipo"])
         yield gauge("llm_descartados", "Boletines descartados por cifras inventadas",
                     {(): sum("descartado" in r for r in records)})
-        yield gauge("llm_errores", "Llamadas a Claude con error", {(): sum("error" in r for r in records)})
+        yield gauge("llm_errores", "Llamadas al modelo de lenguaje con error", {(): sum("error" in r for r in records)})
 
     def opinions(self):
         s = summarize(read_table("opiniones", self.db))

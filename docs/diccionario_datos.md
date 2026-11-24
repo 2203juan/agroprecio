@@ -91,7 +91,7 @@ Llave: (`semana_inicio`, `producto`, `mercado`).
 | `monitoreo` | Resumen por corrida y bandera de reentrenamiento. `accuracy_ultimas_8_semanas` incluye backtest; `predicciones_reales` y `accuracy_real` no |
 | `opiniones` | Respuesta a "¿te sirvió?": `fecha`, `semana_inicio`, `restaurante`, `util` (1 o 0) y `comentario` |
 | `calidad_datos` | Resultado de cada regla de calidad por corrida |
-| `boletines` | Texto del boletín, fuente (Claude o plantilla) y semana |
+| `boletines` | Texto del boletín, fuente (modelo de lenguaje o plantilla) y semana |
 
 ## Problemas conocidos de la fuente
 - El DANE publica con rezago: puede no haber boletín nuevo por varias semanas.

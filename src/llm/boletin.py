@@ -1,4 +1,4 @@
-"""Boletín semanal para el restaurante, redactado por Claude.
+"""Boletín semanal para el restaurante, redactado por un modelo de lenguaje.
 
 Si no hay API key o la llamada falla, se arma un boletín con plantilla
 para que el producto nunca se quede sin mensaje.
@@ -93,7 +93,7 @@ def _generate(alerts, cfg, logger):
             record["stop_reason"] = resp.stop_reason
             if resp.stop_reason == "end_turn":
                 text = "".join(b.text for b in resp.content if b.type == "text").strip()
-                source = "claude"
+                source = "llm"
         except Exception as e:
             logger.warning("Falló la llamada al LLM, se usa plantilla: %s", e)
             record["error"] = str(e)

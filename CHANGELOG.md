@@ -63,7 +63,7 @@
 - Dashboard rediseñado con estilo de plaza de mercado: toldo, letrero, pizarra de precios y detalle por producto.
 
 ## v0.3.0 · Beta
-- Boletín semanal redactado con Claude, con validación de cifras y plantilla de respaldo.
+- Boletín semanal redactado con un modelo de lenguaje, con validación de cifras y plantilla de respaldo.
 - Registro de cada llamada al LLM en `logs/llm.jsonl`.
 - Monitoreo: acierto semanal, drift por producto y bandera de reentrenamiento.
 - Reentrenamiento automático solo cuando el monitoreo lo pide y hay semanas nuevas.

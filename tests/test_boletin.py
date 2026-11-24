@@ -21,8 +21,8 @@ def alerts():
 
 
 @pytest.fixture
-def claude(monkeypatch, cfg):
-    """Reemplaza el SDK de Anthropic por una respuesta fija."""
+def llm(monkeypatch, cfg):
+    """Reemplaza el SDK del modelo por una respuesta fija."""
     Path(cfg["paths"]["logs"]).mkdir()
     monkeypatch.setenv("ANTHROPIC_API_KEY", "clave-de-prueba")
 
@@ -51,26 +51,26 @@ def test_template_separates_buy_and_wait(alerts):
     assert "comprar ya: Tomate chonto" in text and "esperar con: Cilantro" in text
 
 
-def test_good_answer_is_published(alerts, cfg, claude):
-    claude("Compra ya el tomate, que está a $3.738.")
+def test_good_answer_is_published(alerts, cfg, llm):
+    llm("Compra ya el tomate, que está a $3.738.")
     out = generate_bulletin(alerts, cfg, LOG)
-    assert out["fuente"] == "claude" and "3.738" in out["texto"]
+    assert out["fuente"] == "llm" and "3.738" in out["texto"]
     assert last_record(cfg)["tokens_entrada"] == 10
 
 
-def test_invented_price_is_discarded(alerts, cfg, claude):
-    claude("El tomate va a costar $9.999.")
+def test_invented_price_is_discarded(alerts, cfg, llm):
+    llm("El tomate va a costar $9.999.")
     assert generate_bulletin(alerts, cfg, LOG)["fuente"] == "plantilla"
     assert "descartado" in last_record(cfg)
 
 
-def test_truncated_answer_uses_template(alerts, cfg, claude):
-    claude("Compra ya el", stop_reason="max_tokens")
+def test_truncated_answer_uses_template(alerts, cfg, llm):
+    llm("Compra ya el", stop_reason="max_tokens")
     assert generate_bulletin(alerts, cfg, LOG)["fuente"] == "plantilla"
 
 
-def test_error_uses_template(alerts, cfg, claude):
-    claude(error="sin conexión")
+def test_error_uses_template(alerts, cfg, llm):
+    llm(error="sin conexión")
     assert generate_bulletin(alerts, cfg, LOG)["fuente"] == "plantilla"
     assert last_record(cfg)["error"] == "sin conexión"
 

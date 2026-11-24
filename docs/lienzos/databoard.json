@@ -31,7 +31,7 @@
     ],
     "idea": [
       "Predecir cada semana si 20 insumos van a subir, bajar o seguir estables en Cavasa",
-      "Convertirlo en una recomendación de compra redactada por Claude"
+      "Convertirlo en una recomendación de compra redactada por un modelo de lenguaje"
     ],
     "needed": [
       "Abastecimiento semanal (hoja 1.10, solo en boletines recientes)",
@@ -42,7 +42,7 @@
     "prototype": [
       "MVP: pipeline medallón Excel → Parquet → SQLite y baseline de persistencia",
       "Alpha: Random Forest versionado, API FastAPI y dashboard React",
-      "Beta: boletín con Claude, monitoreo de acierto y drift, CI/CD y Docker",
+      "Beta: boletín con un modelo de lenguaje, monitoreo de acierto y drift, CI/CD y Docker",
       "v0.5: MLflow, Prometheus, Grafana y Airflow; opinión del usuario y aviso de vigencia"
     ],
     "risks": [
