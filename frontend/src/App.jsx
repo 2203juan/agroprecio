@@ -30,9 +30,9 @@ function Photo({ name, className = "photo" }) {
   return <img className={className} src={`/img/productos/${file}.webp`} alt="" loading="lazy" width="400" height="400" />;
 }
 
-// Mercado de ejemplo: almuerzo corriente para 50 comensales diarios, de lunes a sábado.
+// Mercado de ejemplo: almuerzo corriente para 300 comensales diarios, de lunes a sábado.
 // Gramos de cada producto por plato (sopa, seco, ensalada, tajadas y jugo); de ahí salen los kilos de la semana
-const EXAMPLE = { diners: 50, days: 6 };
+const EXAMPLE = { diners: 300, days: 6 };
 const EXAMPLE_GRAMS = {
   "Papa parda pastusa": 100, "Plátano hartón verde": 100, "Tomate chonto": 60, "Papa capira": 50, "Yuca ICA": 50,
   "Cebolla cabezona blanca bogotana": 40, "Zanahoria bogotana": 40, "Ahuyama": 40, "Habichuela": 30, "Limón Tahití": 30,
@@ -143,7 +143,7 @@ export default function App() {
       <footer>
         <p className="brand">Agro<span>Precio</span></p>
         <p>
-          Precios mayoristas de la central Cavasa (Cali) publicados por el SIPSA – DANE, en pesos por kilo.
+          Precios mayoristas de Cavasa, la central de abastos que surte a Cali (queda en Candelaria, Valle del Cauca), publicados por el SIPSA – DANE, en pesos por kilo.
           Las proyecciones son estimaciones{model ? ` del modelo ${model.version}` : ""}: el precio real puede cambiar.
         </p>
         {model?.metricas?.modelo?.accuracy_senal_clara != null && (
@@ -250,7 +250,7 @@ function Hero({ alerts, list, target, onPick }) {
     <section className="hero" aria-label="Resumen de la semana">
       <div className="hero-panel">
         <div className="hero-copy">
-          <p className="kicker">Central Cavasa · Cali</p>
+          <p className="kicker">Cavasa · central de abastos de Cali</p>
           <h1>Qué comprar <span className="outline">esta semana</span></h1>
           <p className="hero-sub">
             {mine ? "Tu lista" : `Los ${alerts.length} productos`} para la semana del {span(target.start, target.end)}{target.expired ? " (ya pasó)" : ""}
@@ -362,7 +362,7 @@ function ShoppingList({ list, setList, byProduct, week, onPick }) {
         <div className="empty">
           <p>Anota lo que compras cada semana en Cavasa y cuántos kilos. AgroPrecio te dice qué comprar ya, qué esperar y cuánto te va a costar.</p>
           <button className="btn" onClick={() => save({ ...draft, items: EXAMPLE_LIST })}>Usar el mercado de ejemplo</button>
-          <p className="muted small">Es el mercado de un restaurante de {EXAMPLE_LABEL}: {EXAMPLE_LIST.reduce((t, i) => t + i.kg_semana, 0)} kilos a la semana.</p>
+          <p className="muted small">Es el mercado de un restaurante de {EXAMPLE_LABEL}: {EXAMPLE_LIST.reduce((t, i) => t + i.kg_semana, 0).toLocaleString("es-CO")} kilos a la semana.</p>
         </div>
       ) : (
         <ul className="items">

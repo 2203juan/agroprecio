@@ -167,11 +167,11 @@ h1, h2, .big { font-family: var(--display); font-weight: 800; letter-spacing: -.
 .spend { position: absolute; left: 100px; top: 290px; width: 760px; height: 380px; padding: 40px 50px; background: var(--white); border-radius: 34px; box-shadow: 0 26px 50px rgba(23,74,44,.2); }
 .spend small, .year small { display: block; font-size: 44px; font-weight: 700; }
 .spend small { font-size: 38px; white-space: nowrap; }
-.spend b { display: block; margin-top: 22px; font: 800 136px/1 var(--display); letter-spacing: -.045em; }
+.spend b { display: block; margin-top: 22px; font: 800 126px/1 var(--display); letter-spacing: -.045em; }
 .spend em { display: block; margin-top: 12px; font-style: normal; font-size: 40px; font-weight: 500; color: var(--green); }
 .to { position: absolute; left: 872px; top: 430px; width: 100px; height: 100px; }
 .year { position: absolute; left: 980px; top: 290px; width: 840px; height: 410px; padding: 36px 50px; background: var(--forest); color: var(--white); border-radius: 34px; box-shadow: 0 26px 50px rgba(23,74,44,.3); }
-.year b { display: block; margin-top: 22px; font: 800 196px/1 var(--display); letter-spacing: -.05em; color: var(--yellow); font-variant-numeric: tabular-nums; }
+.year b { display: block; margin-top: 30px; font: 800 158px/1 var(--display); letter-spacing: -.05em; color: var(--yellow); font-variant-numeric: tabular-nums; }
 .year em { display: block; margin-top: 14px; font-style: normal; font-size: 46px; font-weight: 500; color: var(--lime); }
 /* Una bolita por semana real: llena si seguir la recomendación salió mejor, vacía si salió más caro */
 .weeks { position: absolute; left: 100px; top: 716px; width: 760px; display: grid; grid-template-columns: repeat(10, 1fr); gap: 18px 0; }
@@ -330,17 +330,17 @@ h1, h2, .big { font-family: var(--display); font-weight: 800; letter-spacing: -.
   <section class="scene s5 sun" data-d="30">
     <div class="head"><h1 class="rise" style="--dl:.6s">¿Cuánto me <span class="outline forest">ahorro?</span></h1></div>
     <div class="spend rise" style="--dl:2s">
-      <small>50 almuerzos diarios, lunes a sábado</small>
-      <b>$696.000</b>
-      <em>de mercado a la semana · 222 kilos</em>
+      <small>300 almuerzos diarios, lunes a sábado</small>
+      <b>$4.135.000</b>
+      <em>de mercado a la semana · 1.323 kilos</em>
     </div>
     <div class="weeks" data-weeks></div>
     <p class="wk rise" style="--dl:10s">15 de 20 semanas salió mejor</p>
     <svg class="to pop" style="--dl:5s" viewBox="0 0 64 64" fill="none" stroke="#174a2c" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 32h46M36 14l18 18-18 18"/></svg>
     <div class="year rise" style="--dl:5.6s">
       <small>Ahorro real en 20 semanas</small>
-      <b>$<span data-count data-to="255878" style="--dur:5s;--dl:6.4s">0</span></b>
-      <em>cerca de $665.000 al año</em>
+      <b>$<span data-count data-to="1527939" style="--dur:5s;--dl:6.4s">0</span></b>
+      <em>cerca de $4.000.000 al año</em>
     </div>
     <div class="facts">
       <span class="fact rise" style="--dl:16s">Con los precios que publicó el DANE</span>
@@ -406,7 +406,7 @@ const GROUPS = {
 const CARDS = [["Tomate chonto","tomate-chonto",3738],["Cebolla blanca","cebolla-cabezona",2129],["Papa pastusa","papa-pastusa",3392],["Plátano hartón","platano",2071],["Cilantro","cilantro",3854],["Limón Tahití","limon",2021]];
 const SHEET = [["Tomate chonto","Cali, Cavasa"],["Papa capira","Bogotá, Corabastos"],["Cebolla junca","Medellín, CMA"],["Plátano hartón","Cali, Santa Elena"],["Mora de Castilla","Pereira, Mercasa"],["Zanahoria","Tunja"],["Limón Tahití","Bucaramanga"],["Yuca","Barranquilla"],["Aguacate papelillo","Armenia, Mercar"],["Lulo","Neiva, Surabastos"],["Habichuela","Cúcuta, Cenabastos"],["Mango Tommy","Cartagena, Bazurto"],["Pimentón","Ibagué"],["Ahuyama","Montería"],["Maracuyá","Popayán"],["Cilantro","Pasto, El Potrerillo"]];
 
-// Mercado de ejemplo (50 almuerzos diarios, lunes a sábado) en las 20 semanas de prueba:
+// Mercado de ejemplo (300 almuerzos diarios, lunes a sábado) en las 20 semanas de prueba:
 // "+" si seguir la recomendación salió mejor que comprar todo ya, "-" si salió más caro
 const WEEKS = "++++++-+++-+--+++++-";
 

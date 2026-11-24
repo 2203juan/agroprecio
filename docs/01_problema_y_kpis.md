@@ -2,7 +2,7 @@
 
 ## Problema de negocio
 
-Los restaurantes pequeños de Cali (corrientazo, comida casera, comidas rápidas) compran frutas, verduras y tubérculos cada semana, casi siempre en Cavasa o en galerías que se surten de ahí. Esos precios cambian mucho. En los datos del SIPSA, más de dos tercios de las semanas un producto sube o baja más de 3 %.
+Los restaurantes pequeños de Cali (corrientazo, comida casera, comidas rápidas) compran frutas, verduras y tubérculos cada semana, casi siempre en Cavasa o en galerías que se surten de ahí. Cavasa es la Central de Abastecimientos del Valle del Cauca S.A.; queda en el kilómetro 11 de la vía Cali–Candelaria, en el municipio de Candelaria, y el DANE la reporta como "Cali, Cavasa". Esos precios cambian mucho. En los datos del SIPSA, más de dos tercios de las semanas un producto sube o baja más de 3 %.
 
 Sin información, el dueño compra cuando se le acaba el producto y paga lo que esté el día. No sabe si le convenía adelantar la compra o esperar.
 
