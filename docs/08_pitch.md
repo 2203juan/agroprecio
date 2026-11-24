@@ -6,7 +6,7 @@ Duración: 5 minutos más el cierre. Tres minutos con el [fondo animado](../pitc
 
 ## Guion
 
-El fondo no trae texto para leer: muestra las cifras y tú las cuentas. Cada escena se queda en pantalla hasta que pasas a la siguiente con `→`, y la barra de abajo se llena en el tiempo previsto.
+El fondo no trae texto para leer: muestra las cifras y tú las cuentas. Con `→` aparece lo siguiente de la escena y, cuando ya salió todo, pasa a la otra. Con `S` se muestra la escena completa de una vez y con `↑` y `↓` cambias la velocidad. La barra de abajo se llena en el tiempo previsto.
 
 | Tiempo | Escena | Qué decir |
 |---|---|---|
@@ -15,19 +15,19 @@ El fondo no trae texto para leer: muestra las cifras y tú las cuentas. Cada esc
 | 0:35 | 4.000 filas de Excel | Esos precios son públicos y gratis: el DANE los publica cada viernes, en un Excel de más de 4.000 filas. Nadie en una cocina lo abre. |
 | 1:05 | ¿Qué compro ya y qué espero? | AgroPrecio lo lee por usted y le responde una sola pregunta. Esta semana: 9 productos para comprar ya, 8 para esperar y 3 como siempre. |
 | 1:35 | Fácil, cada semana | Anota su lista de mercado, ve qué comprar y qué esperar, sabe cuánto le cuesta la semana y lo comparte por WhatsApp con quien compra. No instala nada, no cambia de proveedor y la decisión es suya. |
-| 2:05 | ¿Cuánto me ahorro? | Cerca de 1 % del mercado. Si compra un millón a la semana, son unos 10.000 pesos semanales y cerca de 520.000 al año. Lo probamos con 20 semanas de precios reales. No siempre acierta, y por eso en cada producto le dice cuántas veces ha acertado. |
+| 2:05 | ¿Cuánto me ahorro? | Tomemos un restaurante de 50 almuerzos diarios, de lunes a sábado: compra unos 700.000 pesos de mercado a la semana. En las últimas 20 semanas, con los precios que publicó el DANE, siguiendo la recomendación habría pagado 165.000 pesos menos. Son cerca de 430.000 al año. Le salió mejor en 14 de las 20 semanas; en las otras 6 esperar salió más caro, y por eso en cada producto le dice cuántas veces ha acertado. |
 | 2:35 | ¿Lo probamos? | Buscamos 5 restaurantes. Son 15 minutos para empezar, es gratis y no hay que instalar nada. Veámoslo en vivo. |
 | 3:00 | **Demostración** (abajo) | Solo el dashboard. |
 | 5:00 | Cierre | Los precios ya son públicos; falta que lleguen a su cocina. |
 
-**Cuidado con la cifra del ahorro.** El 1 % sale de una simulación con precios pasados, no de restaurantes reales, y puede estar entre 0,4 % y 1,7 % (entre 208.000 y 884.000 pesos al año con el mismo ejemplo). Tampoco descuenta lo que se dañe por guardar un producto una semana. Por eso el fondo dice "podrías ahorrar" y "cerca de": no lo presentes como un ahorro garantizado.
+**Cuidado con la cifra del ahorro.** Los $165.379 son reales en el sentido de que usan las recomendaciones de cada semana y los precios que salieron después, pero ningún restaurante compró así: es el mercado de ejemplo, no un cliente. Es 1,2 % del mercado. La cuenta supone que lo que iba a bajar se pudo dejar para la semana siguiente y no descuenta lo que se dañe o haga falta mientras tanto. Los $430.000 al año son esas 20 semanas llevadas a 52, no una promesa. La misma sección está en el dashboard, por si alguien pide verla.
 
 ## Demostración (2 minutos)
 
 Antes de empezar: `make docker` y `make status`. Deja abiertas dos pestañas: el fondo animado y el dashboard. Al terminar, vuelve a la pestaña del fondo y pasa a la escena de cierre con `→`.
 
 1. **De un vistazo.** Lee en voz alta las tres listas: qué comprar ya, qué esperar y qué sigue igual.
-2. **Mi lista.** Cambia los kilos de un producto y muestra cómo se actualiza el costo de la semana.
+2. **Mi lista.** Carga el mercado de ejemplo (50 almuerzos diarios), cambia los kilos de un producto y muestra cómo se actualiza el costo de la semana. Baja a *Lo que habrías ahorrado con esta lista*: es la misma cifra del fondo, semana por semana.
 3. Señala un producto de *Compra ya*: el precio esperado y cuántas veces ha acertado.
 4. **WhatsApp.** Muestra el botón que envía la lista a quien hace la compra.
 5. Si aparece **Recomendación vencida**, dilo: el producto avisa cuando el DANE va atrasado.

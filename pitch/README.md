@@ -8,11 +8,19 @@ Abre `pitch/index.html` en Chrome (doble clic; no necesita internet ni servidor)
 
 | Tecla | Qué hace |
 |---|---|
-| `→`, espacio o clic | Siguiente escena |
+| `→`, espacio o clic | Siguiente paso de la escena. Si ya salió todo, pasa a la siguiente escena |
+| `S` | Muestra de una vez todo lo que falta de la escena |
+| `N` o `Mayús` + `→` | Salta a la siguiente escena |
 | `←` | Escena anterior |
+| `R` | Repite la escena desde el principio |
+| `↑` y `↓` | Más rápido o más lento: 0,5×, 1×, 2× y 4×. La velocidad queda guardada |
+| `P` | Pausa y sigue |
 | `1` a `8` | Ir a una escena |
-| `A` | Modo automático: avanza solo y dura 3:00 |
+| `A` | Modo automático: avanza solo y dura 3:00 a velocidad normal |
 | `F` | Pantalla completa |
+| `H` | Muestra la lista de teclas |
+
+Las animaciones ya no obligan a esperar. Cada escena entra sola y lo demás aparece al ritmo del guion, pero con `→` adelantas lo que sigue cuando ya terminaste de decirlo. Con `S` queda la escena completa de inmediato.
 
 Los pasadores de diapositivas también funcionan, porque envían `Page Down` y `Page Up`.
 
@@ -35,6 +43,6 @@ Si alguna vez hace falta un archivo de video, `node pitch/grabar.mjs` graba las 
 
 ## Si cambian las cifras
 
-Las cifras y los productos de cada grupo están escritos en `index.html`. Corresponden al boletín del 31 de octubre al 6 de noviembre de 2026 y al modelo v0.6. Si llega un boletín nuevo o se reentrena, hay que actualizar la lista `GROUPS` y los números de las escenas 4 y 6.
+Las cifras y los productos de cada grupo están escritos en `index.html`. Corresponden al boletín del 31 de octubre al 6 de noviembre de 2026 y al modelo v0.6. Si llega un boletín nuevo o se reentrena, hay que actualizar la lista `GROUPS`, la lista `WEEKS` y los números de las escenas 4 y 6.
 
-El ahorro de la escena 6 es un ejemplo: 1 % de un mercado de $1.000.000 a la semana, por 52 semanas. El 1 % es el ahorro simulado del modelo, que va de 0,4 % a 1,7 %.
+La escena 6 usa el mercado de ejemplo del dashboard: un restaurante de 50 almuerzos diarios de lunes a sábado (222 kilos, unos $696.000 a la semana en promedio). El ahorro es el real de las 20 semanas de prueba, del 16 de mayo al 30 de octubre de 2026: $165.379, y salió mejor en 14 de las 20. Las bolitas siguen el orden real de esas semanas (lista `WEEKS`). Las cifras salen de `ahorro_real` en `GET /lista` con esa lista cargada.

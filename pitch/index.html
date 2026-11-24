@@ -121,7 +121,7 @@ h1, h2, .big { font-family: var(--display); font-weight: 800; letter-spacing: -.
 .on .rows { animation: scroll 16s linear infinite; }
 @keyframes scroll { to { transform: translateY(-50%); } }
 .stamp { position: absolute; left: 900px; top: 470px; white-space: nowrap; padding: 30px 56px 38px; background: var(--forest); color: var(--yellow); font: 800 132px/1 var(--display); letter-spacing: -.03em; border-radius: 30px; transform: rotate(-7deg); opacity: 0; box-shadow: 0 30px 60px rgba(20,37,26,.4); }
-.on .stamp { animation: stamp .6s 20s cubic-bezier(.3, 1.4, .5, 1) both; }
+.on .stamp { animation: stamp .6s 19.7s cubic-bezier(.3, 1.4, .5, 1) both; }
 @keyframes stamp { from { opacity: 0; transform: rotate(-7deg) scale(2.2); } to { opacity: 1; transform: rotate(-7deg) scale(1); } }
 
 /* ---------- 3. La solución ---------- */
@@ -147,7 +147,7 @@ h1, h2, .big { font-family: var(--display); font-weight: 800; letter-spacing: -.
 .on .flow .line { animation: grow 9s 1s linear both; }
 @keyframes grow { to { transform: none; } }
 .flow .dot { position: absolute; top: 116px; left: 300px; width: 48px; height: 48px; margin-left: -24px; border-radius: 50%; background: var(--yellow); box-shadow: 0 0 0 12px rgba(255,194,26,.25); opacity: 0; }
-.on .flow .dot { animation: travel 5s 11.5s linear infinite; }
+.on .flow .dot { animation: travel 5s 10.8s linear infinite; }
 @keyframes travel { 0% { transform: translateX(0); opacity: 1; } 96% { transform: translateX(1320px); opacity: 1; } 100% { transform: translateX(1320px); opacity: 0; } }
 .node { position: absolute; top: 0; width: 440px; margin-left: -220px; text-align: center; }
 .node .disc { width: 280px; height: 280px; margin: 0 auto; border-radius: 50%; background: var(--white); display: grid; place-items: center; box-shadow: 0 24px 50px rgba(0,0,0,.3); position: relative; z-index: 1; }
@@ -161,18 +161,22 @@ h1, h2, .big { font-family: var(--display); font-weight: 800; letter-spacing: -.
 .s5 { color: var(--forest); }
 .s5 .head { position: absolute; left: 100px; top: 80px; }
 .s5 h1 { font-size: 140px; }
-.spend { position: absolute; left: 100px; top: 300px; width: 760px; height: 330px; padding: 44px 50px; background: var(--white); border-radius: 34px; box-shadow: 0 26px 50px rgba(23,74,44,.2); }
+.spend { position: absolute; left: 100px; top: 290px; width: 760px; height: 380px; padding: 40px 50px; background: var(--white); border-radius: 34px; box-shadow: 0 26px 50px rgba(23,74,44,.2); }
 .spend small, .year small { display: block; font-size: 44px; font-weight: 700; }
-.spend b { display: block; margin-top: 26px; font: 800 136px/1 var(--display); letter-spacing: -.045em; }
-.to { position: absolute; left: 872px; top: 415px; width: 100px; height: 100px; }
-.year { position: absolute; left: 980px; top: 300px; width: 840px; height: 400px; padding: 36px 50px; background: var(--forest); color: var(--white); border-radius: 34px; box-shadow: 0 26px 50px rgba(23,74,44,.3); }
+.spend small { font-size: 38px; white-space: nowrap; }
+.spend b { display: block; margin-top: 22px; font: 800 136px/1 var(--display); letter-spacing: -.045em; }
+.spend em { display: block; margin-top: 12px; font-style: normal; font-size: 40px; font-weight: 500; color: var(--green); }
+.to { position: absolute; left: 872px; top: 430px; width: 100px; height: 100px; }
+.year { position: absolute; left: 980px; top: 290px; width: 840px; height: 410px; padding: 36px 50px; background: var(--forest); color: var(--white); border-radius: 34px; box-shadow: 0 26px 50px rgba(23,74,44,.3); }
 .year b { display: block; margin-top: 22px; font: 800 196px/1 var(--display); letter-spacing: -.05em; color: var(--yellow); font-variant-numeric: tabular-nums; }
 .year em { display: block; margin-top: 14px; font-style: normal; font-size: 46px; font-weight: 500; color: var(--lime); }
-.weeks { position: absolute; left: 100px; top: 680px; width: 760px; display: grid; grid-template-columns: repeat(13, 1fr); gap: 14px 0; }
-.weeks i { width: 44px; height: 44px; border-radius: 50%; background: var(--forest); opacity: 0; }
-.on .weeks i { animation: pop .4s calc(7s + var(--k) * .11s) cubic-bezier(.3, 1.5, .5, 1) both; }
-.wk { position: absolute; left: 100px; top: 930px; font-size: 40px; font-weight: 700; }
-.facts { position: absolute; left: 980px; top: 736px; width: 840px; display: grid; gap: 20px; }
+/* Una bolita por semana real: llena si seguir la recomendación salió mejor, vacía si salió más caro */
+.weeks { position: absolute; left: 100px; top: 716px; width: 760px; display: grid; grid-template-columns: repeat(10, 1fr); gap: 18px 0; }
+.weeks i { width: 56px; height: 56px; border-radius: 50%; background: var(--forest); opacity: 0; }
+.weeks i.miss { background: none; border: 7px solid rgba(23,74,44,.45); }
+.on .weeks i { animation: pop .4s calc(6.4s + var(--k) * .16s) cubic-bezier(.3, 1.5, .5, 1) both; }
+.wk { position: absolute; left: 100px; top: 878px; font-size: 40px; font-weight: 700; }
+.facts { position: absolute; left: 980px; top: 740px; width: 840px; display: grid; gap: 20px; }
 .fact { padding: 22px 36px; border-radius: 26px; background: rgba(255,255,255,.55); white-space: nowrap; font-size: 37px; font-weight: 700; }
 
 /* ---------- 6. Lo que sigue ---------- */
@@ -194,13 +198,13 @@ h1, h2, .big { font-family: var(--display); font-weight: 800; letter-spacing: -.
 .on .clock .hand { animation: spin 6s 6.5s linear infinite; }
 @keyframes spin { to { transform: rotate(360deg); } }
 .free { position: absolute; left: 0; top: 20px; padding: 14px 44px 20px; border-radius: 28px; background: var(--yellow); color: var(--forest); font: 800 130px/1 var(--display); letter-spacing: -.04em; transform-origin: 0 50%; }
-.on .free { animation: pop .7s 11s cubic-bezier(.3, 1.5, .5, 1) both, tilt 3s 12s ease-in-out infinite alternate; }
+.on .free { animation: pop .7s 10.7s cubic-bezier(.3, 1.5, .5, 1) both, tilt 3s 11.4s ease-in-out infinite alternate; }
 @keyframes tilt { from { rotate: -4deg; } to { rotate: 3deg; } }
 .live { position: absolute; left: 0; right: 0; bottom: 0; height: 230px; padding: 0 100px 40px; display: flex; align-items: center; justify-content: space-between; background: var(--forest); color: var(--yellow); font: 800 130px/1 var(--display); letter-spacing: -.03em; transform: translateY(100%); }
 .on .live { animation: liveup 1s 15s var(--out) both; }
 @keyframes liveup { to { transform: none; } }
 .live svg { width: 150px; height: 150px; }
-.on .live svg { animation: nudge 1.2s 16s ease-in-out infinite; }
+.on .live svg { animation: nudge 1.2s 15.8s ease-in-out infinite; }
 @keyframes nudge { 50% { transform: translateX(30px); } }
 .s6 .pace { z-index: 2; }
 
@@ -218,6 +222,11 @@ h1, h2, .big { font-family: var(--display); font-weight: 800; letter-spacing: -.
 /* Ayuda de teclas (no sale en el video) */
 #hint { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); padding: 10px 18px; border-radius: 999px; background: rgba(0,0,0,.7); color: #fff; font-size: 15px; transition: opacity .4s; pointer-events: none; white-space: nowrap; }
 #hint.off { opacity: 0; }
+#help { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); width: min(560px, 90vw); padding: 22px 26px; border-radius: 16px; background: rgba(0,0,0,.88); color: #fff; font-size: 16px; z-index: 100; }
+#help h3 { font: 800 22px/1 var(--display); margin-bottom: 14px; color: var(--yellow); }
+#help dl { display: grid; grid-template-columns: auto 1fr; gap: 8px 18px; }
+#help dt { font-weight: 700; white-space: nowrap; }
+#help dd { color: #d9ddd6; }
 </style>
 </head>
 <body>
@@ -243,7 +252,7 @@ h1, h2, .big { font-family: var(--display); font-weight: 800; letter-spacing: -.
         <div class="t rise" style="--dl:13.4s">de cada 10<br>semanas</div>
       </div>
       <div class="dots" data-dots></div>
-      <p class="more rise" style="--dl:16.5s">el precio cambia más de 3&nbsp;%</p>
+      <p class="more rise" style="--dl:16.2s">el precio cambia más de 3&nbsp;%</p>
     </div>
     <div class="cards" data-cards></div>
   </section>
@@ -318,19 +327,20 @@ h1, h2, .big { font-family: var(--display); font-weight: 800; letter-spacing: -.
   <section class="scene s5 sun" data-d="30">
     <div class="head"><h1 class="rise" style="--dl:.6s">¿Cuánto me <span class="outline forest">ahorro?</span></h1></div>
     <div class="spend rise" style="--dl:2s">
-      <small>Si compras a la semana</small>
-      <b>$1.000.000</b>
+      <small>50 almuerzos diarios, lunes a sábado</small>
+      <b>$696.000</b>
+      <em>de mercado a la semana · 222 kilos</em>
     </div>
     <div class="weeks" data-weeks></div>
-    <p class="wk rise" style="--dl:7s">52 semanas</p>
+    <p class="wk rise" style="--dl:10s">14 de 20 semanas salió mejor</p>
     <svg class="to pop" style="--dl:5s" viewBox="0 0 64 64" fill="none" stroke="#174a2c" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 32h46M36 14l18 18-18 18"/></svg>
-    <div class="year rise" style="--dl:6s">
-      <small>Podrías ahorrar al año</small>
-      <b>$<span data-count data-to="520000" style="--dur:6s;--dl:7s">0</span></b>
-      <em>cerca de $10.000 cada semana</em>
+    <div class="year rise" style="--dl:5.6s">
+      <small>Ahorro real en 20 semanas</small>
+      <b>$<span data-count data-to="165379" style="--dur:5s;--dl:6.4s">0</span></b>
+      <em>cerca de $430.000 al año</em>
     </div>
     <div class="facts">
-      <span class="fact rise" style="--dl:16s">Probado con 20 semanas de precios reales</span>
+      <span class="fact rise" style="--dl:16s">Con los precios que publicó el DANE</span>
       <span class="fact rise" style="--dl:20s">No siempre acierta, y te lo dice</span>
     </div>
   </section>
@@ -346,7 +356,7 @@ h1, h2, .big { font-family: var(--display); font-weight: 800; letter-spacing: -.
       <div class="ncard rise" style="--dl:6s"><div class="art">
         <svg class="clock" viewBox="0 0 64 64" fill="none" stroke="#174a2c" stroke-width="5" stroke-linecap="round"><circle cx="32" cy="32" r="26" fill="#e4f3d6"/><path d="M32 32V16"/><path class="hand" d="M32 32h12" stroke="#19803a"/></svg>
       </div><p>15 minutos para empezar</p></div>
-      <div class="ncard rise" style="--dl:10s"><div class="art"><div class="free pop" style="--dl:11s">$0</div></div><p>Gratis y sin instalar nada</p></div>
+      <div class="ncard rise" style="--dl:10s"><div class="art"><div class="free pop" style="--dl:10.7s">$0</div></div><p>Gratis y sin instalar nada</p></div>
     </div>
     <div class="live">Veámoslo en vivo
       <svg viewBox="0 0 64 64" fill="none" stroke="#ffc21a" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"><path d="M8 32h46M36 14l18 18-18 18"/></svg>
@@ -363,7 +373,23 @@ h1, h2, .big { font-family: var(--display); font-weight: 800; letter-spacing: -.
     <div class="strip" data-strip></div>
   </section>
 </div>
-<div id="hint">→ siguiente · ← anterior · A automático (3:00) · F pantalla completa</div>
+<div id="hint">→ siguiente paso · S mostrar todo · ↑ ↓ velocidad · H ayuda</div>
+<div id="help" hidden>
+  <h3>Teclas</h3>
+  <dl>
+    <dt>→ · espacio · clic</dt><dd>Siguiente paso de la escena; si ya salió todo, siguiente escena</dd>
+    <dt>S</dt><dd>Mostrar de una vez todo lo que falta de la escena</dd>
+    <dt>N · Mayús + →</dt><dd>Saltar a la siguiente escena</dd>
+    <dt>←</dt><dd>Escena anterior</dd>
+    <dt>R</dt><dd>Repetir la escena desde el principio</dd>
+    <dt>↑ · ↓</dt><dd>Más rápido o más lento (0,5× · 1× · 2× · 4×)</dd>
+    <dt>P</dt><dd>Pausar y seguir</dd>
+    <dt>1 a 8</dt><dd>Ir a una escena</dd>
+    <dt>A</dt><dd>Automático: avanza solo</dd>
+    <dt>F</dt><dd>Pantalla completa</dd>
+    <dt>H</dt><dd>Mostrar u ocultar esta ayuda</dd>
+  </dl>
+</div>
 
 <script>
 const PHOTOS = ["tomate-chonto","platano","limon","cilantro","mora","papa-pastusa","lechuga","mango","zanahoria","aguacate","pimenton","lulo","cebolla-cabezona","yuca","maracuya","habichuela","ahuyama","tomate-arbol","cebolla-junca","papa-capira"];
@@ -376,6 +402,10 @@ const GROUPS = {
 const CARDS = [["Tomate chonto","tomate-chonto",3738],["Cebolla blanca","cebolla-cabezona",2129],["Papa pastusa","papa-pastusa",3392],["Plátano hartón","platano",2071],["Cilantro","cilantro",3854],["Limón Tahití","limon",2021]];
 const SHEET = [["Tomate chonto","Cali, Cavasa"],["Papa capira","Bogotá, Corabastos"],["Cebolla junca","Medellín, CMA"],["Plátano hartón","Cali, Santa Elena"],["Mora de Castilla","Pereira, Mercasa"],["Zanahoria","Tunja"],["Limón Tahití","Bucaramanga"],["Yuca","Barranquilla"],["Aguacate papelillo","Armenia, Mercar"],["Lulo","Neiva, Surabastos"],["Habichuela","Cúcuta, Cenabastos"],["Mango Tommy","Cartagena, Bazurto"],["Pimentón","Ibagué"],["Ahuyama","Montería"],["Maracuyá","Popayán"],["Cilantro","Pasto, El Potrerillo"]];
 
+// Mercado de ejemplo (50 almuerzos diarios, lunes a sábado) en las 20 semanas de prueba:
+// "+" si seguir la recomendación salió mejor que comprar todo ya, "-" si salió más caro
+const WEEKS = "++++++-+++-+--+-+++-";
+
 const img = (f) => `<img src="img/${f}.webp" alt="">`;
 const rnd = (a, b) => { const x = Math.sin(a * 12.9898 + b * 78.233) * 43758.5453; return x - Math.floor(x); };
 const $ = (s) => [...document.querySelectorAll(s)];
@@ -383,7 +413,7 @@ const $ = (s) => [...document.querySelectorAll(s)];
 // Piezas repetidas
 $("[data-strip]").forEach((el) => { el.innerHTML = (PHOTOS.map(img).join("")).repeat(2); });
 $("[data-dots]").forEach((el) => { el.innerHTML = Array.from({ length: 10 }, (_, k) => `<i class="${k < 7 ? "hit" : ""}" style="--k:${k}"></i>`).join(""); });
-$("[data-weeks]").forEach((el) => { el.innerHTML = Array.from({ length: 52 }, (_, k) => `<i style="--k:${k}"></i>`).join(""); });
+$("[data-weeks]").forEach((el) => { el.innerHTML = [...WEEKS].map((w, k) => `<i class="${w === "-" ? "miss" : ""}" style="--k:${k}"></i>`).join(""); });
 $("[data-plates]").forEach((el) => { el.innerHTML = Array.from({ length: 5 }, (_, k) => `<i style="--k:${k}"></i>`).join(""); });
 $("[data-group]").forEach((el) => { el.innerHTML = GROUPS[el.dataset.group].map((f, k) => img(f).replace("<img", `<img style="--k:${k}"`)).join(""); });
 $("[data-cards]").forEach((el) => { el.innerHTML = CARDS.map(([n, f], k) => `<div class="pcard pop" style="--dl:${1.4 + k * .25}s">${img(f)}<div class="nm">${n}</div><div class="pr"><span></span><i class="ar"></i></div></div>`).join(""); });
@@ -410,8 +440,7 @@ scenes.forEach((s, i) => {
 });
 
 const REC = new URLSearchParams(location.search).has("rec");
-let cur = -1, auto = false, timer = null;
-const began = [];
+let cur = -1;
 
 function show(i, restart) {
   i = Math.max(0, Math.min(scenes.length - 1, i));
@@ -422,9 +451,69 @@ function show(i, restart) {
   if (restart) void scenes[i].offsetWidth;
   scenes.forEach((s, j) => { if (j <= i) s.classList.add("on"); });
   cur = i;
-  began[i] = performance.now();
-  clearTimeout(timer);
-  if (auto && i < VIDEO - 1) timer = setTimeout(() => show(i + 1, true), D[i] * 1000);
+  if (!REC) arm();
+}
+
+// ---------- Control de la presentación ----------
+// Cada escena tiene un reloj propio (en segundos). Las animaciones son de CSS y aquí
+// se manejan todas juntas: se adelantan a un "paso", se terminan, se aceleran o se pausan.
+const SPEEDS = [0.5, 1, 2, 4];
+const AUTO_START = 3;     // lo que entra en los primeros segundos aparece solo
+const BEAT_GAP = 0.85;    // cosas que entran con menos separación forman un mismo paso
+let speed = 1, paused = false, auto = false, clock = 0, beats = [], held = [];
+try { speed = SPEEDS.includes(Number(localStorage.getItem("pitch.velocidad"))) ? Number(localStorage.getItem("pitch.velocidad")) : 1; } catch { /* sin almacenamiento */ }
+
+const anims = () => scenes[cur].getAnimations({ subtree: true });
+const timing = (a) => a.effect.getComputedTiming();
+const isPace = (a) => !!a.effect.target.closest(".pace");
+
+// Al entrar a una escena: reloj en cero, velocidad elegida y lista de pasos
+function arm() {
+  clock = 0; paused = false; held = [];
+  const list = anims();
+  list.forEach((a) => { a.playbackRate = speed; });
+  const delays = list.map((a) => timing(a).delay / 1000).filter((d) => d > AUTO_START).sort((a, b) => a - b);
+  beats = delays.filter((d, k) => k === 0 || d - delays[k - 1] > BEAT_GAP);
+}
+
+// Adelanta la escena hasta el segundo t; lo que ya venía entrando queda terminado
+function jump(t) {
+  const delta = (t - clock) * 1000;
+  for (const a of anims()) {
+    const { delay, endTime } = timing(a), now = a.currentTime || 0;
+    if (!isPace(a) && Number.isFinite(endTime) && now >= delay && now < endTime) a.currentTime = endTime;
+    else a.currentTime = now + delta;
+  }
+  clock = t;
+}
+
+// Siguiente paso de la escena; si ya salió todo, siguiente escena
+function step() {
+  const next = beats.find((b) => b > clock + 0.3);
+  if (next === undefined) show(cur + 1, true); else jump(next);
+}
+
+// Muestra de una vez todo lo que falta de la escena
+function showAll() {
+  for (const a of anims()) {
+    if (isPace(a)) continue;
+    const { delay, endTime } = timing(a);
+    a.currentTime = Number.isFinite(endTime) ? endTime : Math.max(a.currentTime || 0, delay);
+  }
+  clock = Math.max(clock, beats.at(-1) ?? 0);
+}
+
+function setSpeed(v) {
+  speed = v;
+  anims().forEach((a) => a.updatePlaybackRate(v));
+  try { localStorage.setItem("pitch.velocidad", v); } catch { /* sin almacenamiento */ }
+}
+
+function togglePause() {
+  paused = !paused;
+  // Sólo se pausan las que van corriendo: reanudar una animación ya terminada la reiniciaría
+  if (paused) { held = anims().filter((a) => a.playState === "running"); held.forEach((a) => a.pause()); }
+  else { held.forEach((a) => a.play()); held = []; }
 }
 
 // Números que cuentan y precios que saltan: dependen sólo del tiempo de la escena
@@ -479,26 +568,50 @@ fit();
 
 if (REC) {
   document.getElementById("hint").remove();
+  document.getElementById("help").remove();
   document.fonts.ready.then(() => { window.seek(0); window.ready = true; });
 } else {
   const hint = document.getElementById("hint");
   const say = (t) => { hint.textContent = t; hint.classList.remove("off"); clearTimeout(say.t); say.t = setTimeout(() => hint.classList.add("off"), 2500); };
   say.t = setTimeout(() => hint.classList.add("off"), 6000);
+  const help = document.getElementById("help");
   show(0, true);
-  (function loop() { update((j) => (performance.now() - (began[j] || performance.now())) / 1000); requestAnimationFrame(loop); })();
-  const next = () => show(cur + 1, true), prev = () => show(cur - 1, true);
+  let last = performance.now();
+  (function loop() {
+    const now = performance.now();
+    if (!paused) clock += ((now - last) / 1000) * speed;
+    last = now;
+    update((j) => (j === cur ? clock : 0));
+    // Automático: pasa de escena cuando se cumple su tiempo (respeta pausa, velocidad y saltos)
+    if (auto && !paused && cur < VIDEO - 1 && clock >= D[cur]) show(cur + 1, true);
+    requestAnimationFrame(loop);
+  })();
+  const faster = (dir) => {
+    const v = SPEEDS[Math.max(0, Math.min(SPEEDS.length - 1, SPEEDS.indexOf(speed) + dir))];
+    setSpeed(v);
+    say(v === 1 ? "Velocidad normal" : `Velocidad ${String(v).replace(".", ",")}×`);
+  };
   addEventListener("keydown", (e) => {
-    const k = e.key;
-    if (["ArrowRight", " ", "PageDown", "Enter"].includes(k)) { e.preventDefault(); next(); }
-    else if (["ArrowLeft", "PageUp", "Backspace"].includes(k)) { e.preventDefault(); prev(); }
+    const k = e.key, low = k.toLowerCase();
+    if (low !== "h" && k !== "?") help.hidden = true;
+    if (k === "ArrowRight" && e.shiftKey) { e.preventDefault(); show(cur + 1, true); }
+    else if (["ArrowRight", " ", "PageDown", "Enter"].includes(k)) { e.preventDefault(); step(); }
+    else if (["ArrowLeft", "PageUp", "Backspace"].includes(k)) { e.preventDefault(); show(cur - 1, true); }
+    else if (k === "ArrowUp" || k === "+") { e.preventDefault(); faster(1); }
+    else if (k === "ArrowDown" || k === "-") { e.preventDefault(); faster(-1); }
     else if (k === "Home") show(0, true);
     else if (k === "End") show(scenes.length - 1, true);
     else if (k >= "1" && k <= "8") show(Number(k) - 1, true);
-    else if (k.toLowerCase() === "f") { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); }
-    else if (k.toLowerCase() === "a") { auto = !auto; say(auto ? "Automático: avanza solo, 3:00 en total" : "Manual: avanza con →"); show(cur, true); }
+    else if (low === "n") show(cur + 1, true);
+    else if (low === "s") showAll();
+    else if (low === "r") show(cur, true);
+    else if (low === "p") { togglePause(); say(paused ? "En pausa · P para seguir" : "Sigue"); }
+    else if (low === "h" || k === "?") help.hidden = !help.hidden;
+    else if (low === "f") { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); }
+    else if (low === "a") { auto = !auto; say(auto ? "Automático: avanza solo, 3:00 a velocidad normal" : "Manual: avanza con →"); show(cur, true); }
   });
-  // Un clic avanza, salvo sobre un enlace: ese se abre
-  addEventListener("click", (e) => { if (!e.target.closest("a")) next(); });
+  // Un clic avanza un paso, salvo sobre un enlace: ese se abre
+  addEventListener("click", (e) => { if (!e.target.closest("a")) { help.hidden = true; step(); } });
   let idle;
   addEventListener("mousemove", () => { document.body.classList.add("pointer"); clearTimeout(idle); idle = setTimeout(() => document.body.classList.remove("pointer"), 1500); });
 }
