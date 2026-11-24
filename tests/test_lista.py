@@ -50,3 +50,33 @@ def test_product_accuracy_counts_last_weeks():
     scored = pd.DataFrame({"semana_inicio": weeks, "producto": "Cilantro", "acierto": [False] * 2 + [True] * 8})
     acc = product_accuracy(scored, weeks=8)
     assert acc.iloc[0]["aciertos"] == 8 and acc.iloc[0]["evaluadas"] == 8
+
+
+def test_real_savings_uses_real_next_price():
+    from src.lista import real_savings
+
+    items = pd.DataFrame({"producto": ["Tomate chonto", "Cilantro"], "kg_semana": [10, 2]})
+    history = pd.DataFrame({
+        "semana_inicio": ["2026-01-03"] * 2 + ["2026-01-10"] * 2,
+        "producto": ["Tomate chonto", "Cilantro"] * 2,
+        "prediccion": ["baja", "sube", "baja", "estable"],
+        "precio": [1000.0, 2000.0, 900.0, 2100.0],
+        "precio_siguiente": [900.0, 2100.0, 1000.0, None],  # la última no tiene resultado todavía
+    })
+    out = real_savings(items, history)
+    first, second = out["semanas"]
+    # Semana 1: acertó que el tomate bajaba y se ahorró 10 kg x $100
+    assert first["ahorro"] == 1000
+    # Semana 2: dijo que bajaba y subió: esperar costó $1.000 más
+    assert second["ahorro"] == -1000
+    r = out["resumen"]
+    assert r["semanas"] == 2 and r["ahorro"] == 0
+    assert r["semanas_con_ahorro"] == 1 and r["semanas_con_perdida"] == 1
+    assert r["ahorro_maximo_posible"] == 1000
+
+
+def test_real_savings_empty_list():
+    from src.lista import real_savings
+
+    out = real_savings(pd.DataFrame(columns=["producto", "kg_semana"]), pd.DataFrame())
+    assert out == {"semanas": [], "resumen": None}

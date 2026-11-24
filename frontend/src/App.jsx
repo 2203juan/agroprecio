@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import {
-  Area, CartesianGrid, ComposedChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis,
+  Area, Bar, CartesianGrid, Cell, ComposedChart, Line, ReferenceLine, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
 
 const API = "/api";
@@ -30,11 +30,19 @@ function Photo({ name, className = "photo" }) {
   return <img className={className} src={`/img/productos/${file}.webp`} alt="" loading="lazy" width="400" height="400" />;
 }
 
-const EXAMPLE_LIST = [
-  ["Tomate chonto", 15], ["Cebolla cabezona blanca bogotana", 10], ["Papa parda pastusa", 25],
-  ["Plátano hartón verde", 12], ["Zanahoria bogotana", 6], ["Habichuela", 4],
-  ["Cilantro", 2], ["Limón Tahití", 5],
-].map(([producto, kg_semana]) => ({ producto, kg_semana }));
+// Mercado de ejemplo: almuerzo corriente para 50 comensales diarios, de lunes a sábado.
+// Gramos de cada producto por plato (sopa, seco, ensalada, tajadas y jugo); de ahí salen los kilos de la semana
+const EXAMPLE = { diners: 50, days: 6 };
+const EXAMPLE_GRAMS = {
+  "Papa parda pastusa": 100, "Plátano hartón verde": 100, "Tomate chonto": 60, "Papa capira": 50, "Yuca ICA": 50,
+  "Cebolla cabezona blanca bogotana": 40, "Zanahoria bogotana": 40, "Ahuyama": 40, "Habichuela": 30, "Limón Tahití": 30,
+  "Lechuga Batavia": 25, "Aguacate papelillo": 25, "Cebolla junca Aquitania": 20, "Pimentón": 15, "Cilantro": 10,
+  "Lulo": 20, "Mora de Castilla": 20, "Maracuyá": 20, "Mango Tommy": 20, "Tomate de árbol": 20,
+};
+const EXAMPLE_LIST = Object.entries(EXAMPLE_GRAMS).map(([producto, grams]) => (
+  { producto, kg_semana: Math.max(1, Math.round((grams * EXAMPLE.diners * EXAMPLE.days) / 1000)) }
+));
+const EXAMPLE_LABEL = `${EXAMPLE.diners} almuerzos diarios, de lunes a sábado`;
 
 const pesos = (n) => "$" + Math.round(n).toLocaleString("es-CO");
 const pct = (n) => Math.round(Math.abs(n) * 100) + " %";
@@ -122,6 +130,8 @@ export default function App() {
           <Bulletin bulletin={bulletin} alerts={alerts} onPick={setProduct} />
         </aside>
       </section>
+
+      <RealSavings saving={list.ahorro_real} />
 
       <Board alerts={alerts} week={week} onPick={setProduct} />
 
@@ -339,7 +349,8 @@ function ShoppingList({ list, setList, byProduct, week, onPick }) {
       {draft.items.length === 0 ? (
         <div className="empty">
           <p>Anota lo que compras cada semana en Cavasa y cuántos kilos. AgroPrecio te dice qué comprar ya, qué esperar y cuánto te va a costar.</p>
-          <button className="btn" onClick={() => save({ ...draft, items: EXAMPLE_LIST })}>Usar una lista de ejemplo</button>
+          <button className="btn" onClick={() => save({ ...draft, items: EXAMPLE_LIST })}>Usar el mercado de ejemplo</button>
+          <p className="muted small">Es el mercado de un restaurante de {EXAMPLE_LABEL}: {EXAMPLE_LIST.reduce((t, i) => t + i.kg_semana, 0)} kilos a la semana.</p>
         </div>
       ) : (
         <ul className="items">
@@ -393,6 +404,12 @@ function ShoppingList({ list, setList, byProduct, week, onPick }) {
             </ul>
           )}
         </div>
+      )}
+
+      {draft.items.length > 0 && (
+        <button className="link small" onClick={() => save({ ...draft, items: EXAMPLE_LIST })}>
+          Cambiar por el mercado de ejemplo ({EXAMPLE_LABEL})
+        </button>
       )}
 
       {removed && (
@@ -454,6 +471,84 @@ function Totals({ list, week, target }) {
       <p className="muted small">Lo que va a subir se compra ya, lo que va a bajar se deja para la otra semana y el resto como siempre.</p>
       <WhatsApp text={message}>Enviar mi lista por WhatsApp</WhatsApp>
     </div>
+  );
+}
+
+// ---------- Ahorro real de la lista con precios que ya pasaron ----------
+
+function RealSavings({ saving }) {
+  const r = saving?.resumen;
+  if (!r) return null;
+  const won = r.ahorro >= 0;
+  const data = saving.semanas.map((w) => ({ semana: String(w.semana_inicio).slice(0, 10), ahorro: w.ahorro, acumulado: w.ahorro_acumulado }));
+  const thousands = (v) => (v < 0 ? "-$" : "$") + Math.abs(Math.round(v / 1000)).toLocaleString("es-CO") + " mil";
+  const signed = (v) => (v < 0 ? "-" : "") + pesos(Math.abs(v));
+  return (
+    <section className="card savings" aria-label="Ahorro real con tu lista">
+      <div className="savings-head">
+        <p className="kicker">Con precios reales, no con estimaciones</p>
+        <h2>Lo que habrías {won ? "ahorrado" : "perdido"} con esta lista</h2>
+        <p className="muted">
+          Tomamos las últimas {r.semanas} semanas ({day(r.desde)} a {day(addDays(r.hasta, 6), { day: "numeric", month: "short", year: "numeric" })}),
+          con la recomendación que dio AgroPrecio cada semana y el precio que después publicó el DANE.
+        </p>
+      </div>
+
+      <div className="stats">
+        <div className={"stat big " + (won ? "good" : "bad")}>
+          <span className="label">{won ? "Ahorro" : "Pérdida"} en {r.semanas} semanas</span>
+          <strong>{signed(r.ahorro)}</strong>
+          <span className="muted small">{(Math.abs(r.ahorro_pct) * 100).toFixed(1).replace(".", ",")} % del mercado</span>
+        </div>
+        <div className="stat">
+          <span className="label">Por semana, en promedio</span>
+          <strong>{signed(r.ahorro_por_semana)}</strong>
+        </div>
+        <div className="stat">
+          <span className="label">En un año, a este ritmo</span>
+          <strong>{signed(r.ahorro_al_anio)}</strong>
+        </div>
+        <div className="stat">
+          <span className="label">Semanas en que salió mejor</span>
+          <strong>{r.semanas_con_ahorro} de {r.semanas}</strong>
+          <span className="muted small">{r.semanas_con_perdida} salieron más caras</span>
+        </div>
+      </div>
+
+      <div className="compare">
+        <div><span>Comprando todo ya, como siempre</span><span>{pesos(r.costo_habitual)}</span></div>
+        <div className="main"><span>Siguiendo la recomendación</span><span>{pesos(r.costo_recomendado)}</span></div>
+      </div>
+
+      <h3>Ahorro de cada semana y cómo se va sumando</h3>
+      <ResponsiveContainer width="100%" height={260}>
+        <ComposedChart data={data} margin={{ left: 4, right: 12, top: 8 }}>
+          <CartesianGrid stroke="var(--line)" vertical={false} />
+          <XAxis dataKey="semana" tickFormatter={(d) => day(d)} tick={{ fontSize: 12, fill: "var(--muted)" }} minTickGap={28} />
+          <YAxis tickFormatter={thousands} tick={{ fontSize: 12, fill: "var(--muted)" }} width={72} />
+          <Tooltip
+            labelFormatter={(d) => "Semana del " + day(d)}
+            formatter={(v, name) => [signed(v), name]}
+            contentStyle={{ background: "var(--card)", border: "1px solid var(--line)", borderRadius: 8 }}
+          />
+          <ReferenceLine y={0} stroke="var(--muted)" />
+          <Bar dataKey="ahorro" name="Ahorro de la semana" radius={[4, 4, 0, 0]}>
+            {data.map((d) => <Cell key={d.semana} fill={d.ahorro >= 0 ? "var(--green)" : "var(--red)"} />)}
+          </Bar>
+          <Line dataKey="acumulado" name="Ahorro acumulado" stroke="var(--forest)" strokeWidth={2.5} dot={false} />
+        </ComposedChart>
+      </ResponsiveContainer>
+      <p className="legend small muted">
+        <span className="key bar good" /> Semana con ahorro <span className="key bar bad" /> Semana que salió más cara <span className="key line" /> Ahorro acumulado
+      </p>
+
+      <p className="small muted savings-note">
+        Cómo se calcula: cada semana se compra la misma lista. "Como siempre" es comprar todo ya; siguiendo la recomendación,
+        lo que AgroPrecio dijo que iba a bajar se compró a la semana siguiente, al precio real de esa semana. No siempre acierta.
+        Sabiendo el futuro, el ahorro máximo posible era {pesos(r.ahorro_maximo_posible)}
+        {r.ahorro > 0 ? <>: la recomendación logró el {Math.round(r.parte_del_maximo * 100)} % de eso.</> : "."}
+      </p>
+    </section>
   );
 }
 

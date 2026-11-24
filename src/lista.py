@@ -25,3 +25,50 @@ def normalize_items(items, products):
     df["kg_semana"] = pd.to_numeric(df["kg_semana"], errors="coerce")
     df = df[df["producto"].isin(products) & (df["kg_semana"] > 0)]
     return df.drop_duplicates("producto", keep="last").reset_index(drop=True)
+
+
+def real_savings(items, history):
+    """Ahorro real de la lista con precios que ya pasaron.
+
+    history: una fila por semana y producto con la predicción que se dio, el
+    precio de esa semana (precio) y el que realmente hubo la siguiente (precio_siguiente).
+    Compara tres formas de comprar la misma lista cada semana:
+    - habitual: comprar todo ya, sin mirar la predicción;
+    - recomendado: lo que iba a bajar se dejó para la semana siguiente;
+    - ideal: pagar siempre el menor de los dos precios (sabiendo el futuro).
+    """
+    empty = {"semanas": [], "resumen": None}
+    if items.empty or history.empty:
+        return empty
+    df = history.dropna(subset=["precio_siguiente"]).merge(items, on="producto", how="inner")
+    if df.empty:
+        return empty
+    df["costo_habitual"] = df["kg_semana"] * df["precio"]
+    later = df["kg_semana"] * df["precio_siguiente"]
+    df["costo_recomendado"] = later.where(df["prediccion"] == "baja", df["costo_habitual"])
+    df["costo_ideal"] = pd.concat([df["costo_habitual"], later], axis=1).min(axis=1)
+
+    weeks = (df.groupby("semana_inicio", as_index=False)
+             [["costo_habitual", "costo_recomendado", "costo_ideal"]].sum().round()
+             .sort_values("semana_inicio"))
+    weeks["ahorro"] = weeks["costo_habitual"] - weeks["costo_recomendado"]
+    weeks["ahorro_acumulado"] = weeks["ahorro"].cumsum()
+
+    usual, paid = float(weeks["costo_habitual"].sum()), float(weeks["costo_recomendado"].sum())
+    saving, best = usual - paid, usual - float(weeks["costo_ideal"].sum())
+    summary = {
+        "semanas": len(weeks),
+        "desde": str(weeks["semana_inicio"].min())[:10],
+        "hasta": str(weeks["semana_inicio"].max())[:10],
+        "costo_habitual": usual,
+        "costo_recomendado": paid,
+        "ahorro": saving,
+        "ahorro_pct": round(saving / usual, 4) if usual else 0,
+        "ahorro_por_semana": round(saving / len(weeks)),
+        "ahorro_al_anio": round(saving / len(weeks) * 52),
+        "semanas_con_ahorro": int((weeks["ahorro"] > 0).sum()),
+        "semanas_con_perdida": int((weeks["ahorro"] < 0).sum()),
+        "ahorro_maximo_posible": best,
+        "parte_del_maximo": round(saving / best, 4) if best else 0,
+    }
+    return {"semanas": weeks.to_dict("records"), "resumen": summary}

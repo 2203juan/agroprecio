@@ -14,7 +14,7 @@ from starlette.responses import Response
 
 from api import actualizar
 from api.prometheus import ProductCollector, track_requests
-from src.lista import cost_list, normalize_items
+from src.lista import cost_list, normalize_items, real_savings
 from src.model.metrics import classification_metrics, evaluate_version
 from src.model.train import evaluated_model
 from src.load.load_database import query, read_table, save_table
@@ -133,7 +133,13 @@ def read_list():
 
 def costed(name, items):
     rows, totals = cost_list(items, query("SELECT * FROM alertas", DB))
-    return {"restaurante": name, "items": records(rows), "totales": totals}
+    # Predicciones pasadas con el precio que realmente hubo la semana siguiente
+    history = query(
+        "SELECT p.semana_inicio, p.producto, p.prediccion, f.precio, f.precio_siguiente "
+        "FROM predicciones p JOIN features f "
+        "ON f.producto = p.producto AND f.semana_inicio = p.semana_inicio", DB)
+    return {"restaurante": name, "items": records(rows), "totales": totals,
+            "ahorro_real": real_savings(items, history)}
 
 
 @app.get("/lista")
