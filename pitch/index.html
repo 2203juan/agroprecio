@@ -330,17 +330,17 @@ h1, h2, .big { font-family: var(--display); font-weight: 800; letter-spacing: -.
   <section class="scene s5 sun" data-d="30">
     <div class="head"><h1 class="rise" style="--dl:.6s">¿Cuánto me <span class="outline forest">ahorro?</span></h1></div>
     <div class="spend rise" style="--dl:2s">
-      <small>300 almuerzos diarios, lunes a sábado</small>
-      <b>$4.135.000</b>
-      <em>de mercado a la semana · 1.323 kilos</em>
+      <small>500 almuerzos diarios, lunes a sábado</small>
+      <b>$6.890.000</b>
+      <em>de mercado a la semana · 2.205 kilos</em>
     </div>
     <div class="weeks" data-weeks></div>
     <p class="wk rise" style="--dl:10s">15 de 20 semanas salió mejor</p>
     <svg class="to pop" style="--dl:5s" viewBox="0 0 64 64" fill="none" stroke="#174a2c" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 32h46M36 14l18 18-18 18"/></svg>
     <div class="year rise" style="--dl:5.6s">
       <small>Ahorro real en 20 semanas</small>
-      <b>$<span data-count data-to="1527939" style="--dur:5s;--dl:6.4s">0</span></b>
-      <em>cerca de $4.000.000 al año</em>
+      <b>$<span data-count data-to="2546565" style="--dur:5s;--dl:6.4s">0</span></b>
+      <em>cerca de $6.600.000 al año</em>
     </div>
     <div class="facts">
       <span class="fact rise" style="--dl:16s">Con los precios que publicó el DANE</span>
@@ -376,19 +376,17 @@ h1, h2, .big { font-family: var(--display); font-weight: 800; letter-spacing: -.
     <div class="strip" data-strip></div>
   </section>
 </div>
-<div id="hint">→ siguiente paso · S mostrar todo · ↑ ↓ velocidad · H ayuda</div>
+<div id="hint">→ siguiente escena · ← anterior · H ayuda</div>
 <div id="help" hidden>
   <h3>Teclas</h3>
   <dl>
-    <dt>→ · espacio · clic</dt><dd>Siguiente paso de la escena; si ya salió todo, siguiente escena</dd>
-    <dt>S</dt><dd>Mostrar de una vez todo lo que falta de la escena</dd>
-    <dt>N · Mayús + →</dt><dd>Saltar a la siguiente escena</dd>
+    <dt>→ · espacio · clic</dt><dd>Siguiente escena. Cada escena entra completa en un par de segundos</dd>
     <dt>←</dt><dd>Escena anterior</dd>
     <dt>R</dt><dd>Repetir la escena desde el principio</dd>
     <dt>↑ · ↓</dt><dd>Más rápido o más lento (0,5× · 1× · 2× · 4×)</dd>
     <dt>P</dt><dd>Pausar y seguir</dd>
     <dt>1 a 8</dt><dd>Ir a una escena</dd>
-    <dt>A</dt><dd>Automático: avanza solo</dd>
+    <dt>A</dt><dd>Automático: avanza solo, con los tiempos del guion (3:00)</dd>
     <dt>F</dt><dd>Pantalla completa</dd>
     <dt>H</dt><dd>Mostrar u ocultar esta ayuda</dd>
   </dl>
@@ -406,7 +404,7 @@ const GROUPS = {
 const CARDS = [["Tomate chonto","tomate-chonto",3738],["Cebolla blanca","cebolla-cabezona",2129],["Papa pastusa","papa-pastusa",3392],["Plátano hartón","platano",2071],["Cilantro","cilantro",3854],["Limón Tahití","limon",2021]];
 const SHEET = [["Tomate chonto","Cali, Cavasa"],["Papa capira","Bogotá, Corabastos"],["Cebolla junca","Medellín, CMA"],["Plátano hartón","Cali, Santa Elena"],["Mora de Castilla","Pereira, Mercasa"],["Zanahoria","Tunja"],["Limón Tahití","Bucaramanga"],["Yuca","Barranquilla"],["Aguacate papelillo","Armenia, Mercar"],["Lulo","Neiva, Surabastos"],["Habichuela","Cúcuta, Cenabastos"],["Mango Tommy","Cartagena, Bazurto"],["Pimentón","Ibagué"],["Ahuyama","Montería"],["Maracuyá","Popayán"],["Cilantro","Pasto, El Potrerillo"]];
 
-// Mercado de ejemplo (300 almuerzos diarios, lunes a sábado) en las 20 semanas de prueba:
+// Mercado de ejemplo (500 almuerzos diarios, lunes a sábado) en las 20 semanas de prueba:
 // "+" si seguir la recomendación salió mejor que comprar todo ya, "-" si salió más caro
 const WEEKS = "++++++-+++-+--+++++-";
 
@@ -463,6 +461,7 @@ function show(i, restart) {
 // se manejan todas juntas: se adelantan a un "paso", se terminan, se aceleran o se pausan.
 const SPEEDS = [0.5, 1, 2, 4];
 const AUTO_START = 3;     // lo que entra en los primeros segundos aparece solo
+const QUICK = 0.06;        // presentando, las esperas del guion se reducen a esta fracción
 const BEAT_GAP = 0.85;    // cosas que entran con menos separación forman un mismo paso
 let speed = 1, paused = false, auto = false, clock = 0, beats = [], held = [];
 try { speed = SPEEDS.includes(Number(localStorage.getItem("pitch.velocidad"))) ? Number(localStorage.getItem("pitch.velocidad")) : 1; } catch { /* sin almacenamiento */ }
@@ -476,6 +475,19 @@ function arm() {
   clock = 0; paused = false; held = [];
   const list = anims();
   list.forEach((a) => { a.playbackRate = speed; });
+  beats = [];
+  if (!auto) {
+    // Presentando: la escena entra completa en un par de segundos y → pasa a la siguiente.
+    // Se conserva el orden de entrada, pero sin esperas; lo que se mueve en bucle sigue igual
+    for (const a of list) {
+      if (isPace(a)) continue;
+      const t = timing(a), once = Number.isFinite(t.iterations);
+      a.effect.updateTiming({ delay: Math.min(t.delay, 200 + t.delay * QUICK),
+                              duration: once ? Math.min(t.duration, 700) : t.duration });
+    }
+    return;
+  }
+  // Automático: tiempos del guion, con pasos por si se quiere adelantar
   const delays = list.map((a) => timing(a).delay / 1000).filter((d) => d > AUTO_START).sort((a, b) => a - b);
   beats = delays.filter((d, k) => k === 0 || d - delays[k - 1] > BEAT_GAP);
 }
@@ -612,7 +624,7 @@ if (REC) {
     else if (low === "p") { togglePause(); say(paused ? "En pausa · P para seguir" : "Sigue"); }
     else if (low === "h" || k === "?") help.hidden = !help.hidden;
     else if (low === "f") { document.fullscreenElement ? document.exitFullscreen() : document.documentElement.requestFullscreen(); }
-    else if (low === "a") { auto = !auto; say(auto ? "Automático: avanza solo, 3:00 a velocidad normal" : "Manual: avanza con →"); show(cur, true); }
+    else if (low === "a") { auto = !auto; say(auto ? "Automático: avanza solo, 3:00 a velocidad normal" : "Manual: → pasa de escena"); show(cur, true); }
   });
   // Un clic avanza un paso, salvo sobre un enlace: ese se abre
   addEventListener("click", (e) => { if (!e.target.closest("a")) { help.hidden = true; step(); } });
