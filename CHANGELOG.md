@@ -7,6 +7,14 @@
 - Modo público (`AGRO_PUBLICO=1`): la lista se guarda en el navegador, el botón de actualizar no aparece y las opiniones sobreviven a los reinicios.
 - Fondo animado para el pitch (`pitch/`) y guion adaptado a dueños de restaurante.
 
+## v0.7.0 · Precios diarios
+- Fuente nueva: precios de cada día de mercado, por el servicio web del SIPSA (desde 2020, una descarga al día).
+- Nueve variables sobre cómo cerró la semana en Cavasa, Corabastos, la región y el país.
+- El ensamble suma una red neuronal pequeña (promedio de cinco semillas).
+- En la prueba: accuracy de 0,478 a 0,540, F1 de 0,472 a 0,533 y ROC AUC de 0,678 a 0,729. El ahorro simulado queda igual (1,13 %).
+- El pipeline reentrena solo cuando el código trae otra receta de modelo.
+- Regla de calidad nueva: avisa si la última semana no tiene precios diarios.
+
 ## v0.6.0 · Modelo
 - Modelo nuevo: promedio de HistGradientBoosting y ExtraTrees, con 33 variables y dos mercados de Cali. F1 de 0,447 a 0,472 y ahorro simulado de 0,39 % a 1,01 % en la prueba.
 - El modelo en producción se reajusta con todos los datos después de evaluarse.

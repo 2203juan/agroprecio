@@ -1,4 +1,87 @@
-# Experimentos del modelo (v0.6)
+# Experimentos del modelo
+
+Dos rondas: la v0.7 (datos nuevos y red neuronal) y, más abajo, la v0.6.
+
+## v0.7: el diario del SIPSA
+
+### El problema
+
+La v0.6 daba F1 0,472 y accuracy 0,478 en la prueba. Antes de cambiar nada se probó solo el algoritmo, con los mismos datos: una red neuronal, ensambles más grandes y más semillas. Todo quedó entre 0,49 y 0,50 de F1 en validación. El límite no era el modelo sino los datos: la variable más útil tenía una correlación de 0,12 con lo que pasa la semana siguiente.
+
+### El dato nuevo
+
+El DANE publica, además del boletín semanal, el precio de **cada día de mercado** en las centrales principales, y un servicio web lo entrega completo desde febrero de 2020. Cavasa tiene mercado lunes y jueves; Corabastos, todos los días.
+
+- En 16 de los 20 productos, el precio semanal del boletín es exactamente el promedio de los días de Cavasa (razón 1,000 y correlación 1,000 en 177 semanas). Es la misma medición, vista por dentro.
+- El promedio de la semana esconde hacia dónde iba el precio. Si Cavasa cerró el jueves por encima de su promedio, o Corabastos subió de lunes a viernes, la semana siguiente suele arrancar desde ahí.
+- Cilantro, yuca, papa parda y zanahoria no tienen un diario equivalente en Cavasa. Usan solo las variables de Corabastos, la región y el país.
+
+Nueve variables nuevas (`DAILY_FEATURES` en `src/transform/diario.py`). Su relación con el cambio siguiente es entre dos y tres veces la de las anteriores:
+
+| Variable | Qué mide | Correlación |
+|---|---|---|
+| `pais_cierre_vs_media` | Cierre de la semana frente a su promedio, mediana de los mercados del país | 0,33 |
+| `pais_amplitud_intra` | Proporción de mercados que subieron menos los que bajaron dentro de la semana | 0,33 |
+| `cora_cierre_vs_media`, `cora_cambio_intra` | Lo mismo en Corabastos | 0,29 |
+| `dia_cambio_intra` | Jueves frente a lunes en Cavasa | 0,28 |
+| `dia_ultimo_vs_semana` | Último día de Cavasa frente al precio semanal | 0,27 |
+| `cora_cambio_cierre` | Cierre de Corabastos frente al cierre anterior | 0,25 |
+| `region_cierre_vs_media` | Cierre frente al promedio en Armenia, Pereira, Popayán y Cali | 0,22 |
+| `dia_cambio_cierre` | Cierre de Cavasa frente al cierre anterior | 0,09 |
+
+Solo usan días de la semana que ya terminó: hay un test que quita los días posteriores y comprueba que no cambian.
+
+### Resultados en validación
+
+Los mismos cinco bloques de 14 semanas, sin tocar la prueba (`make experiments`):
+
+| Variante | F1 macro | Peor bloque | Accuracy | Ahorro simulado |
+|---|---|---|---|---|
+| HistGradientBoosting + ExtraTrees, sin el diario (v0.6) | 0,496 | 0,474 | 0,499 | 1,45 % |
+| Regresión logística, con el diario | 0,549 | 0,493 | 0,553 | 1,98 % |
+| ExtraTrees, con el diario | 0,540 | 0,508 | 0,544 | 1,83 % |
+| HistGradientBoosting, con el diario | 0,534 | 0,507 | 0,540 | 1,95 % |
+| HistGradientBoosting + ExtraTrees, con el diario | 0,546 | 0,524 | 0,551 | 1,92 % |
+| **HistGradientBoosting + ExtraTrees + red neuronal, con el diario (v0.7)** | **0,546** | **0,509** | **0,553** | **2,10 %** |
+
+- **La mejora viene de los datos.** Con el diario, hasta una regresión logística le gana al mejor modelo sin él.
+- **La red neuronal aporta poco.** Sola iguala a los árboles. En el ensamble no sube el F1; sube algo el ahorro (de 1,92 % a 2,10 %) y el AUC. Es una red pequeña (32 neuronas, muy regularizada) y se promedian cinco semillas, porque una sola cambia mucho de una corrida a otra. Entra con un tercio del voto.
+
+### Qué no ayudó
+
+| Idea | Resultado |
+|---|---|
+| Reconstruir la serie semanal desde 2020 con el diario (el doble de historia) | F1 0,536 frente a 0,546: un poco peor. Antes de 2023 hay menos mercados y las variables de contexto no son comparables |
+| Once variables más del diario (variación del último día, volatilidad dentro de la semana, la otra central de Cali, promedio del grupo) | Entre 0,547 y 0,564, dentro del ruido entre corridas |
+| Redes más grandes (64-32, 128-64-32) | Igual o peor que la de 32 |
+| Sumar la regresión logística al ensamble | Igual |
+| Cambiar la regla de compra por la diferencia entre la probabilidad de subir y la de bajar | Ahorro de 2,10 % a 2,39 % en validación; no justifica cambiar lo que ve el usuario |
+| Bajar un Excel por día del sitio del DANE | El servidor limita las descargas (error 429) después de unos 100 archivos. El servicio web entrega todo en una petición |
+
+### Resultado en las 20 semanas de prueba
+
+| | v0.6 | v0.7 | Intervalo de 95 % de la diferencia |
+|---|---|---|---|
+| Accuracy | 0,478 | 0,540 | +0,032 a +0,095 |
+| F1 macro | 0,472 | 0,533 | +0,029 a +0,095 |
+| Kappa de Cohen | 0,209 | 0,300 | |
+| ROC AUC | 0,678 | 0,729 | |
+| Log loss | 1,006 | 0,951 | |
+| Ahorro simulado | 1,01 % | 1,13 % | -0,6 a +0,6 puntos |
+
+Con el mercado de ejemplo del dashboard (50 almuerzos diarios), el ahorro real de esas 20 semanas pasa de $165.379 a $248.628 y sale mejor en 15 semanas en vez de 14.
+
+### Cómo leerlo
+
+- **La clasificación mejora de forma segura.** Es la primera vez que el intervalo de la diferencia de F1 no incluye el cero.
+- **El ahorro simulado no mejora en la prueba.** En validación sí (de 1,45 % a 2,10 %), pero en estas 20 semanas la diferencia no se distingue de cero. El modelo acierta más la dirección, y eso todavía no se traduce en más plata con la regla de comprar antes lo que sube.
+- **Sigue fallando casi la mitad de las veces.** Un acierto de 54 % en tres clases es mejor que el 40 % de repetir la semana anterior, pero no es un modelo para seguir a ciegas.
+- **La prueba ya se había mirado** con la v0.6. Esta vez la decisión se tomó con la validación y la prueba se corrió una sola vez con el código final, pero son las mismas 20 semanas. La confirmación de verdad son las semanas nuevas.
+- **Dependencia nueva:** si el servicio web del DANE falla, el pipeline sigue con el último diario descargado y la regla de calidad `diario_en_la_ultima_semana` lo avisa.
+
+---
+
+# Ronda anterior (v0.6)
 
 ## Punto de partida
 
@@ -50,7 +133,7 @@ La tabla completa está en [experimentos.csv](experimentos.csv).
 | Reentrenar cada semana en vez de cada 14 | Igual |
 | Usar solo los últimos dos años | Peor |
 | Cambiar la regla de compra (cambio esperado, umbrales) | Ninguna supera con claridad a la actual |
-| Abastecimiento (hoja 1.10 del boletín) | No se probó: los boletines antiguos no la traen |
+| Abastecimiento (hoja 1.10 del boletín) | No se probó: los boletines antiguos no la traen. El servicio web del SIPSA lo tiene por mes |
 
 ## Resultado en las 20 semanas de prueba
 

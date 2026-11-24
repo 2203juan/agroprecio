@@ -20,7 +20,7 @@ La versión en producción con sus métricas, las de los baselines y los paráme
 
 ![Métricas en MLflow](docs/img/mlflow.png)
 
-En el registro, la v0.6 tiene el alias `champion` y la anterior quedó archivada.
+En el registro, la versión en producción tiene el alias `champion` y las anteriores quedan archivadas.
 
 ![Registro de modelos en MLflow](docs/img/mlflow_registro.png)
 
@@ -149,22 +149,25 @@ Para el notebook de exploración: `pip install -r requirements-dev.txt`.
 | Silver | `data/silver/precios.parquet` | Una fila por semana, producto y mercado, para todo el país (~786 mil filas) |
 | Gold | `data/gold/features.parquet` y `agroprecio.db` | Serie semanal de Cavasa para 20 productos, variables del modelo, predicciones, alertas, monitoreo y boletines |
 
-Cada ejecución corre 11 reglas de calidad sobre silver y gold y las guarda en la tabla `calidad_datos`. Si falla una regla crítica, el pipeline se detiene antes de entrenar o publicar.
+Cada ejecución corre 12 reglas de calidad sobre silver y gold y las guarda en la tabla `calidad_datos`. Si falla una regla crítica, el pipeline se detiene antes de entrenar o publicar.
 
 ## Modelo
 
 - **Qué predice:** la clase del cambio de precio de la próxima semana (`sube` > +3 %, `baja` < -3 %, `estable` en medio).
-- **Variables:** 33, más el producto. Historia del precio, posición frente al país, la región y Corabastos, lo que pasó el año anterior y época del año.
-- **Algoritmo:** promedio de HistGradientBoosting y ExtraTrees (scikit-learn), entrenado con dos mercados de Cali y evaluado en Cavasa. Se eligió entre varias variantes con validación hacia adelante en el tiempo: ver [experimentos](docs/09_experimentos.md).
+- **Variables:** 42, más el producto. Historia del precio, posición frente al país, la región y Corabastos, lo que pasó el año anterior, época del año y, desde la v0.7, cómo cerró la semana según los precios diarios del SIPSA (en Cavasa, en Corabastos, en la región y en el país).
+- **Algoritmo:** promedio de HistGradientBoosting, ExtraTrees y una red neuronal pequeña (scikit-learn), entrenado con dos mercados de Cali y evaluado en Cavasa. Se eligió entre varias variantes con validación hacia adelante en el tiempo: ver [experimentos](docs/09_experimentos.md).
 - **Validación:** corte temporal, con las últimas 20 semanas como prueba. Se compara siempre contra tres baselines.
 
 | | Accuracy | F1 macro | Ahorro simulado |
 |---|---|---|---|
+| **Ensamble con red neuronal y precios diarios (v0.7)** | **0,54** | **0,53** | **+1,1 %** |
 | HistGradientBoosting + ExtraTrees (v0.6) | 0,48 | 0,47 | +1,0 % |
 | Random Forest (v0.5) | 0,45 | 0,45 | +0,4 % |
 | Baseline: repetir lo de la semana pasada | 0,40 | 0,40 | -0,3 % |
 | Baseline: siempre estable | 0,27 | 0,14 | 0 % |
 | Baseline: comprar todo hoy | 0,34 | 0,17 | -0,7 % |
+
+La mejora de la v0.7 viene de un dato nuevo, no del algoritmo: el F1 sube entre 0,03 y 0,10 (intervalo de 95 %), y el ahorro simulado queda igual. Ver [experimentos](docs/09_experimentos.md).
 
 `GET /metrics` re-evalúa cada versión guardada sobre su periodo de prueba, junto a los tres baselines, y devuelve accuracy, balanced accuracy, precision, recall, F1 (macro y ponderado), kappa de Cohen, MCC, log loss, ROC AUC y el ahorro simulado. También trae las métricas por clase, la matriz de confusión y el acierto de las predicciones de producción que ya tienen resultado real. Con `/metrics?formato=html` se ve como tabla en el navegador.
 

@@ -2,12 +2,17 @@ variante,f1_macro,f1_peor_bloque,accuracy,ahorro_simulado
 Baseline: repetir la semana pasada,0.4081,0.3593,0.4092,0.0016
 Baseline: comprar todo hoy,0.1775,0.1521,0.3644,0.0044
 "Random Forest, variables básicas (v0.5)",0.4219,0.3985,0.4259,0.0075
-"Random Forest, todas las variables",0.46,0.4323,0.4661,0.0112
-"ExtraTrees, todas las variables",0.4816,0.4396,0.4871,0.0119
-"Regresión logística, todas las variables",0.4734,0.4337,0.4761,0.0122
-"HistGradientBoosting, todas las variables",0.4583,0.4169,0.4618,0.0123
-"Random Forest, todas, mercados de Cali",0.4733,0.4284,0.4769,0.0105
-"ExtraTrees, todas, mercados de Cali",0.4833,0.4377,0.4884,0.0137
-"Regresión logística, todas, mercados de Cali",0.4761,0.4285,0.4777,0.012
-"HistGradientBoosting, todas, mercados de Cali",0.4905,0.4624,0.495,0.0136
-"HistGradientBoosting + ExtraTrees, todas, mercados de Cali",0.4956,0.4739,0.4992,0.0145
+"Random Forest, semanales",0.46,0.4323,0.4661,0.0112
+"ExtraTrees, semanales",0.4816,0.4396,0.4871,0.0119
+"Regresión logística, semanales",0.4734,0.4337,0.4761,0.0122
+"HistGradientBoosting, semanales",0.4583,0.4169,0.4618,0.0123
+"Random Forest, semanales, mercados de Cali",0.4733,0.4284,0.4769,0.0105
+"ExtraTrees, semanales, mercados de Cali",0.4833,0.4377,0.4884,0.0137
+"Regresión logística, semanales, mercados de Cali",0.4761,0.4285,0.4777,0.012
+"HistGradientBoosting, semanales, mercados de Cali",0.4905,0.4624,0.495,0.0136
+"HistGradientBoosting + ExtraTrees, semanales, mercados de Cali (v0.6)",0.4956,0.4739,0.4992,0.0145
+"Regresión logística, con el diario",0.5489,0.4926,0.5531,0.0198
+"ExtraTrees, con el diario",0.5396,0.5081,0.5437,0.0183
+"HistGradientBoosting, con el diario",0.5341,0.507,0.5401,0.0195
+"HistGradientBoosting + ExtraTrees, con el diario",0.5459,0.5236,0.5509,0.0192
+"HistGradientBoosting + ExtraTrees + red neuronal, con el diario (v0.7)",0.5459,0.5094,0.553,0.021

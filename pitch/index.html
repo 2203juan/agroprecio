@@ -285,8 +285,8 @@ h1, h2, .big { font-family: var(--display); font-weight: 800; letter-spacing: -.
     </div>
     <div class="groups">
       <div class="group ya rise" style="--dl:2.5s"><header><div>Compra ya<small>va a subir</small></div><b data-count data-to="9" style="--dur:4s;--dl:5s">0</b></header><div class="thumbs" data-group="sube" style="--t0:5s"></div></div>
-      <div class="group espera rise" style="--dl:9.5s"><header><div>Espera<small>va a bajar</small></div><b data-count data-to="8" style="--dur:3.6s;--dl:12s">0</b></header><div class="thumbs" data-group="baja" style="--t0:12s"></div></div>
-      <div class="group normal rise" style="--dl:16.5s"><header><div>Como siempre<small>sigue igual</small></div><b data-count data-to="3" style="--dur:1.4s;--dl:19s">0</b></header><div class="thumbs" data-group="estable" style="--t0:19s"></div></div>
+      <div class="group espera rise" style="--dl:9.5s"><header><div>Espera<small>va a bajar</small></div><b data-count data-to="7" style="--dur:3.2s;--dl:12s">0</b></header><div class="thumbs" data-group="baja" style="--t0:12s"></div></div>
+      <div class="group normal rise" style="--dl:16.5s"><header><div>Como siempre<small>sigue igual</small></div><b data-count data-to="4" style="--dur:1.8s;--dl:19s">0</b></header><div class="thumbs" data-group="estable" style="--t0:19s"></div></div>
     </div>
   </section>
 
@@ -332,12 +332,12 @@ h1, h2, .big { font-family: var(--display); font-weight: 800; letter-spacing: -.
       <em>de mercado a la semana · 222 kilos</em>
     </div>
     <div class="weeks" data-weeks></div>
-    <p class="wk rise" style="--dl:10s">14 de 20 semanas salió mejor</p>
+    <p class="wk rise" style="--dl:10s">15 de 20 semanas salió mejor</p>
     <svg class="to pop" style="--dl:5s" viewBox="0 0 64 64" fill="none" stroke="#174a2c" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"><path d="M8 32h46M36 14l18 18-18 18"/></svg>
     <div class="year rise" style="--dl:5.6s">
       <small>Ahorro real en 20 semanas</small>
-      <b>$<span data-count data-to="165379" style="--dur:5s;--dl:6.4s">0</span></b>
-      <em>cerca de $430.000 al año</em>
+      <b>$<span data-count data-to="248628" style="--dur:5s;--dl:6.4s">0</span></b>
+      <em>cerca de $650.000 al año</em>
     </div>
     <div class="facts">
       <span class="fact rise" style="--dl:16s">Con los precios que publicó el DANE</span>
@@ -395,16 +395,16 @@ h1, h2, .big { font-family: var(--display); font-weight: 800; letter-spacing: -.
 const PHOTOS = ["tomate-chonto","platano","limon","cilantro","mora","papa-pastusa","lechuga","mango","zanahoria","aguacate","pimenton","lulo","cebolla-cabezona","yuca","maracuya","habichuela","ahuyama","tomate-arbol","cebolla-junca","papa-capira"];
 // Recomendación del boletín del 31 de octubre al 6 de noviembre de 2026
 const GROUPS = {
-  sube: ["cebolla-junca","lechuga","mora","habichuela","platano","zanahoria","lulo","cilantro","limon"],
-  baja: ["maracuya","pimenton","papa-pastusa","papa-capira","tomate-arbol","mango","tomate-chonto","cebolla-cabezona"],
-  estable: ["aguacate","yuca","ahuyama"],
+  sube: ["lechuga","aguacate","platano","zanahoria","limon","cebolla-junca","cebolla-cabezona","papa-capira","papa-pastusa"],
+  baja: ["tomate-arbol","mango","pimenton","maracuya","habichuela","tomate-chonto","cilantro"],
+  estable: ["yuca","ahuyama","mora","lulo"],
 };
 const CARDS = [["Tomate chonto","tomate-chonto",3738],["Cebolla blanca","cebolla-cabezona",2129],["Papa pastusa","papa-pastusa",3392],["Plátano hartón","platano",2071],["Cilantro","cilantro",3854],["Limón Tahití","limon",2021]];
 const SHEET = [["Tomate chonto","Cali, Cavasa"],["Papa capira","Bogotá, Corabastos"],["Cebolla junca","Medellín, CMA"],["Plátano hartón","Cali, Santa Elena"],["Mora de Castilla","Pereira, Mercasa"],["Zanahoria","Tunja"],["Limón Tahití","Bucaramanga"],["Yuca","Barranquilla"],["Aguacate papelillo","Armenia, Mercar"],["Lulo","Neiva, Surabastos"],["Habichuela","Cúcuta, Cenabastos"],["Mango Tommy","Cartagena, Bazurto"],["Pimentón","Ibagué"],["Ahuyama","Montería"],["Maracuyá","Popayán"],["Cilantro","Pasto, El Potrerillo"]];
 
 // Mercado de ejemplo (50 almuerzos diarios, lunes a sábado) en las 20 semanas de prueba:
 // "+" si seguir la recomendación salió mejor que comprar todo ya, "-" si salió más caro
-const WEEKS = "++++++-+++-+--+-+++-";
+const WEEKS = "++++++-+++-+--+++++-";
 
 const img = (f) => `<img src="img/${f}.webp" alt="">`;
 const rnd = (a, b) => { const x = Math.sin(a * 12.9898 + b * 78.233) * 43758.5453; return x - Math.floor(x); };

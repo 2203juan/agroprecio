@@ -12,7 +12,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 import yaml
-from sklearn.ensemble import ExtraTreesClassifier, HistGradientBoostingClassifier, RandomForestClassifier
+from sklearn.ensemble import ExtraTreesClassifier, HistGradientBoostingClassifier, RandomForestClassifier, VotingClassifier
 from sklearn.impute import SimpleImputer
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import accuracy_score, f1_score
@@ -22,7 +22,7 @@ from sklearn.preprocessing import QuantileTransformer
 from src.model import tracking
 from src.model.metrics import simulated_saving
 from src.model.train import BOOSTING, TREES, build_model, evaluable, preprocess
-from src.transform.gold_transformations import BASE_FEATURES, FEATURES, classify
+from src.transform.gold_transformations import BASE_FEATURES, FEATURES, WEEKLY_FEATURES, classify
 
 BLOCKS, BLOCK_WEEKS = 5, 14
 
@@ -50,17 +50,25 @@ def candidates(seed):
     def pipe(make, features):
         return lambda: Pipeline([("prep", preprocess(features)), ("clf", make())])
 
+    both = lambda: VotingClassifier([("boosting", boosting()), ("arboles", trees())], voting="soft")
+    W = WEEKLY_FEATURES
     return [  # nombre, variables, ¿solo Cavasa?, modelo
         ("Random Forest, variables básicas (v0.5)", BASE_FEATURES, True, pipe(forest, BASE_FEATURES)),
-        ("Random Forest, todas las variables", FEATURES, True, pipe(forest, FEATURES)),
-        ("ExtraTrees, todas las variables", FEATURES, True, pipe(trees, FEATURES)),
-        ("Regresión logística, todas las variables", FEATURES, True, pipe(logistic, FEATURES)),
-        ("HistGradientBoosting, todas las variables", FEATURES, True, pipe(boosting, FEATURES)),
-        ("Random Forest, todas, mercados de Cali", FEATURES, False, pipe(forest, FEATURES)),
-        ("ExtraTrees, todas, mercados de Cali", FEATURES, False, pipe(trees, FEATURES)),
-        ("Regresión logística, todas, mercados de Cali", FEATURES, False, pipe(logistic, FEATURES)),
-        ("HistGradientBoosting, todas, mercados de Cali", FEATURES, False, pipe(boosting, FEATURES)),
-        ("HistGradientBoosting + ExtraTrees, todas, mercados de Cali", FEATURES, False,
+        ("Random Forest, semanales", W, True, pipe(forest, W)),
+        ("ExtraTrees, semanales", W, True, pipe(trees, W)),
+        ("Regresión logística, semanales", W, True, pipe(logistic, W)),
+        ("HistGradientBoosting, semanales", W, True, pipe(boosting, W)),
+        ("Random Forest, semanales, mercados de Cali", W, False, pipe(forest, W)),
+        ("ExtraTrees, semanales, mercados de Cali", W, False, pipe(trees, W)),
+        ("Regresión logística, semanales, mercados de Cali", W, False, pipe(logistic, W)),
+        ("HistGradientBoosting, semanales, mercados de Cali", W, False, pipe(boosting, W)),
+        ("HistGradientBoosting + ExtraTrees, semanales, mercados de Cali (v0.6)", W, False, pipe(both, W)),
+        # Desde aquí, con las variables del diario del SIPSA
+        ("Regresión logística, con el diario", FEATURES, False, pipe(logistic, FEATURES)),
+        ("ExtraTrees, con el diario", FEATURES, False, pipe(trees, FEATURES)),
+        ("HistGradientBoosting, con el diario", FEATURES, False, pipe(boosting, FEATURES)),
+        ("HistGradientBoosting + ExtraTrees, con el diario", FEATURES, False, pipe(both, FEATURES)),
+        ("HistGradientBoosting + ExtraTrees + red neuronal, con el diario (v0.7)", FEATURES, False,
          lambda: build_model(seed, FEATURES)),
     ]
 

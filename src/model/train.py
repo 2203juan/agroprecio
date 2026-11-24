@@ -7,16 +7,21 @@ import joblib
 from sklearn.compose import ColumnTransformer
 from sklearn.ensemble import ExtraTreesClassifier, HistGradientBoostingClassifier, VotingClassifier
 from sklearn.impute import SimpleImputer
+from sklearn.neural_network import MLPClassifier
 from sklearn.pipeline import Pipeline, make_pipeline
-from sklearn.preprocessing import OneHotEncoder
+from sklearn.preprocessing import OneHotEncoder, QuantileTransformer
 
 from src.model.metrics import classification_metrics, simulated_saving
 from src.transform.gold_transformations import BASE_FEATURES, FEATURES, classify
 
-ALGORITHM = "Promedio de HistGradientBoosting y ExtraTrees"
+ALGORITHM = "Promedio de HistGradientBoosting, ExtraTrees y red neuronal"
 BOOSTING = {"max_iter": 200, "learning_rate": 0.04, "max_leaf_nodes": 12, "min_samples_leaf": 40,
             "l2_regularization": 5, "early_stopping": False}
 TREES = {"n_estimators": 400, "max_depth": 12, "min_samples_leaf": 10, "max_features": 0.4}
+# Red pequeña y muy regularizada: con pocos miles de filas, una grande memoriza
+NETWORK = {"hidden_layer_sizes": (32,), "alpha": 3.0, "learning_rate_init": 0.003, "max_iter": 300,
+           "early_stopping": True, "n_iter_no_change": 15}
+NETWORK_SEEDS = 5  # una sola red cambia mucho según la semilla; se promedian varias
 
 
 def preprocess(features):
@@ -32,7 +37,15 @@ def build_model(random_state, features=None):
         SimpleImputer(strategy="median", keep_empty_features=True),
         ExtraTreesClassifier(**TREES, class_weight="balanced", random_state=random_state, n_jobs=-1),
     )
-    vote = VotingClassifier([("boosting", boosting), ("arboles", trees)], voting="soft")
+    # La red necesita las variables sin vacíos y en una escala parecida
+    networks = [(f"red_{k}", make_pipeline(
+        SimpleImputer(strategy="median", keep_empty_features=True),
+        QuantileTransformer(output_distribution="normal", n_quantiles=200, random_state=random_state),
+        MLPClassifier(**NETWORK, random_state=random_state * 100 + k),
+    )) for k in range(NETWORK_SEEDS)]
+    # Un voto para cada familia: boosting, árboles y el promedio de las redes
+    vote = VotingClassifier([("boosting", boosting), ("arboles", trees), *networks], voting="soft",
+                            weights=[1, 1] + [1 / NETWORK_SEEDS] * NETWORK_SEEDS)
     return Pipeline([("prep", preprocess(features or FEATURES)), ("clf", vote)])
 
 
@@ -41,6 +54,7 @@ def parameters(random_state):
         "algoritmo": ALGORITHM, "class_weight": "balanced", "random_state": random_state,
         **{f"boosting_{k}": v for k, v in BOOSTING.items()},
         **{f"arboles_{k}": v for k, v in TREES.items()},
+        **{f"red_{k}": v for k, v in NETWORK.items()}, "red_semillas": NETWORK_SEEDS,
     }
 
 

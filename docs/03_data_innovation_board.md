@@ -37,6 +37,7 @@ Se puede cargar en el [Data Innovation Board](https://juankidd.github.io/databoa
 - Beta: boletín con Claude, monitoreo de acierto y drift, CI/CD con GitHub Actions y todo en Docker.
 - v0.5: MLflow, Prometheus, Grafana y Airflow; opinión del usuario y aviso de vigencia.
 - v0.6: modelo nuevo elegido con validación en el tiempo.
+- v0.7: se suman los precios diarios del SIPSA. El acierto pasa de 48 % a 54 %.
 
 **Riesgos y ética.**
 - El DANE publica con rezago y la recomendación llega vencida → aviso en el dashboard y alerta.
