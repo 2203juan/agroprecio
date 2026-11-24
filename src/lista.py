@@ -44,6 +44,8 @@ def real_savings(items, history):
     - habitual: comprar todo ya, sin mirar la predicción;
     - recomendado: lo que iba a bajar se dejó para la semana siguiente;
     - ideal: pagar siempre el menor de los dos precios (sabiendo el futuro).
+    El resumen separa además las compras que se aplazaron ("esperas"): la mayor parte de la
+    lista se compra como siempre, así que el ahorro se concentra en esas.
     """
     empty = {"semanas": [], "resumen": None}
     if items.empty or history.empty:
@@ -62,8 +64,14 @@ def real_savings(items, history):
     weeks["ahorro"] = weeks["costo_habitual"] - weeks["costo_recomendado"]
     weeks["ahorro_acumulado"] = weeks["ahorro"].cumsum()
 
+    # Solo las compras que se aplazaron por recomendación: ahí es donde se nota el ahorro
+    waited = df[recommendation(df) == "baja"]
+    waited_usual = float(waited["costo_habitual"].sum())
+    waited_saving = waited_usual - float(waited["costo_recomendado"].sum())
+    best = weeks.loc[weeks["ahorro"].idxmax()]
+
     usual, paid = float(weeks["costo_habitual"].sum()), float(weeks["costo_recomendado"].sum())
-    saving, best = usual - paid, usual - float(weeks["costo_ideal"].sum())
+    saving, top = usual - paid, usual - float(weeks["costo_ideal"].sum())
     summary = {
         "semanas": len(weeks),
         "desde": str(weeks["semana_inicio"].min())[:10],
@@ -76,7 +84,12 @@ def real_savings(items, history):
         "ahorro_al_anio": round(saving / len(weeks) * 52),
         "semanas_con_ahorro": int((weeks["ahorro"] > 0).sum()),
         "semanas_con_perdida": int((weeks["ahorro"] < 0).sum()),
-        "ahorro_maximo_posible": best,
-        "parte_del_maximo": round(saving / best, 4) if best else 0,
+        "ahorro_maximo_posible": top,
+        "parte_del_maximo": round(saving / top, 4) if top else 0,
+        "esperas": len(waited),
+        "esperas_acertadas": int((waited["costo_recomendado"] < waited["costo_habitual"]).sum()),
+        "ahorro_en_esperas_pct": round(waited_saving / waited_usual, 4) if waited_usual else 0,
+        "mejor_semana": {"semana_inicio": str(best["semana_inicio"])[:10], "ahorro": float(best["ahorro"]),
+                         "ahorro_pct": round(float(best["ahorro"] / best["costo_habitual"]), 4)},
     }
     return {"semanas": weeks.to_dict("records"), "resumen": summary}

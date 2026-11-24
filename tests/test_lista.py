@@ -73,6 +73,9 @@ def test_real_savings_uses_real_next_price():
     assert r["semanas"] == 2 and r["ahorro"] == 0
     assert r["semanas_con_ahorro"] == 1 and r["semanas_con_perdida"] == 1
     assert r["ahorro_maximo_posible"] == 1000
+    # Dos veces dijo "espera" y acertó una; en esas compras el ahorro neto fue cero
+    assert r["esperas"] == 2 and r["esperas_acertadas"] == 1 and r["ahorro_en_esperas_pct"] == 0
+    assert r["mejor_semana"] == {"semana_inicio": "2026-01-03", "ahorro": 1000.0, "ahorro_pct": 0.0714}
 
 
 def test_real_savings_empty_list():

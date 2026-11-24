@@ -359,3 +359,11 @@ footer p:last-child { max-width: 720px; }
   .spinner, .hero-panel, .sum { animation: none; }
   .product, .btn { transition: none; }
 }
+
+/* Mercados de ejemplo y ahorro en las compras aplazadas */
+.examples { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+.examples-inline .link { margin-left: 10px; }
+.stats.waits { grid-template-columns: repeat(3, 1fr); margin-top: 12px; }
+.stat.good:not(.big) { background: var(--mist, #e4f3d6); }
+.stat.good:not(.big) strong { color: var(--forest); }
+@media (max-width: 720px) { .stats.waits { grid-template-columns: 1fr; } }

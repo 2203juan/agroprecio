@@ -30,19 +30,32 @@ function Photo({ name, className = "photo" }) {
   return <img className={className} src={`/img/productos/${file}.webp`} alt="" loading="lazy" width="400" height="400" />;
 }
 
-// Mercado de ejemplo: almuerzo corriente para 300 comensales diarios, de lunes a sábado.
 // Gramos de cada producto por plato (sopa, seco, ensalada, tajadas y jugo); de ahí salen los kilos de la semana
-const EXAMPLE = { diners: 300, days: 6 };
-const EXAMPLE_GRAMS = {
-  "Papa parda pastusa": 100, "Plátano hartón verde": 100, "Tomate chonto": 60, "Papa capira": 50, "Yuca ICA": 50,
-  "Cebolla cabezona blanca bogotana": 40, "Zanahoria bogotana": 40, "Ahuyama": 40, "Habichuela": 30, "Limón Tahití": 30,
-  "Lechuga Batavia": 25, "Aguacate papelillo": 25, "Cebolla junca Aquitania": 20, "Pimentón": 15, "Cilantro": 10,
-  "Lulo": 20, "Mora de Castilla": 20, "Maracuyá": 20, "Mango Tommy": 20, "Tomate de árbol": 20,
-};
-const EXAMPLE_LIST = Object.entries(EXAMPLE_GRAMS).map(([producto, grams]) => (
-  { producto, kg_semana: Math.max(1, Math.round((grams * EXAMPLE.diners * EXAMPLE.days) / 1000)) }
+// Mercados de ejemplo: gramos por plato, para 500 platos diarios de lunes a sábado
+const EXAMPLE = { diners: 500, days: 6 };
+const asList = (grams) => Object.entries(grams).map(([producto, g]) => (
+  { producto, kg_semana: Math.max(1, Math.round((g * EXAMPLE.diners * EXAMPLE.days) / 1000)) }
 ));
-const EXAMPLE_LABEL = `${EXAMPLE.diners} almuerzos diarios, de lunes a sábado`;
+const EXAMPLES = [
+  {
+    name: "Restaurante de almuerzos", label: `${EXAMPLE.diners} almuerzos diarios, de lunes a sábado`,
+    items: asList({
+      "Papa parda pastusa": 100, "Plátano hartón verde": 100, "Tomate chonto": 60, "Papa capira": 50, "Yuca ICA": 50,
+      "Cebolla cabezona blanca bogotana": 40, "Zanahoria bogotana": 40, "Ahuyama": 40, "Habichuela": 30, "Limón Tahití": 30,
+      "Lechuga Batavia": 25, "Aguacate papelillo": 25, "Cebolla junca Aquitania": 20, "Pimentón": 15, "Cilantro": 10,
+      "Lulo": 20, "Mora de Castilla": 20, "Maracuyá": 20, "Mango Tommy": 20, "Tomate de árbol": 20,
+    }),
+  },
+  {
+    // Casi todo el gasto se va en limón y cebolla, dos productos que cambian mucho de una semana a otra
+    name: "Cevichería", label: `${EXAMPLE.diners} ceviches diarios, de lunes a sábado`,
+    items: asList({
+      "Limón Tahití": 150, "Plátano hartón verde": 120, "Cebolla cabezona blanca bogotana": 80, "Lechuga Batavia": 40,
+      "Tomate chonto": 40, "Lulo": 40, "Aguacate papelillo": 30, "Maracuyá": 30, "Pimentón": 15, "Cilantro": 15,
+    }),
+  },
+];
+const kilos = (items) => items.reduce((t, i) => t + i.kg_semana, 0).toLocaleString("es-CO");
 
 const pesos = (n) => "$" + Math.round(n).toLocaleString("es-CO");
 const pct = (n) => Math.round(Math.abs(n) * 100) + " %";
@@ -361,8 +374,12 @@ function ShoppingList({ list, setList, byProduct, week, onPick }) {
       {draft.items.length === 0 ? (
         <div className="empty">
           <p>Anota lo que compras cada semana en Cavasa y cuántos kilos. AgroPrecio te dice qué comprar ya, qué esperar y cuánto te va a costar.</p>
-          <button className="btn" onClick={() => save({ ...draft, items: EXAMPLE_LIST })}>Usar el mercado de ejemplo</button>
-          <p className="muted small">Es el mercado de un restaurante de {EXAMPLE_LABEL}: {EXAMPLE_LIST.reduce((t, i) => t + i.kg_semana, 0).toLocaleString("es-CO")} kilos a la semana.</p>
+          <div className="examples">
+            {EXAMPLES.map((e) => (
+              <button key={e.name} className="btn" onClick={() => save({ ...draft, items: e.items })}>Probar con: {e.name.toLowerCase()}</button>
+            ))}
+          </div>
+          <p className="muted small">Son mercados de ejemplo: {EXAMPLES.map((e) => `${e.label} (${kilos(e.items)} kilos a la semana)`).join("; ")}.</p>
         </div>
       ) : (
         <ul className="items">
@@ -421,9 +438,12 @@ function ShoppingList({ list, setList, byProduct, week, onPick }) {
       )}
 
       {draft.items.length > 0 && (
-        <button className="link small" onClick={() => save({ ...draft, items: EXAMPLE_LIST })}>
-          Cambiar por el mercado de ejemplo ({EXAMPLE_LABEL})
-        </button>
+        <p className="small muted examples-inline">
+          Cambiar por un mercado de ejemplo:{" "}
+          {EXAMPLES.map((e) => (
+            <button key={e.name} className="link small" onClick={() => save({ ...draft, items: e.items })} title={e.label}>{e.name}</button>
+          ))}
+        </p>
       )}
 
       {removed && (
@@ -528,6 +548,26 @@ function RealSavings({ saving }) {
           <span className="muted small">{r.semanas_con_perdida} salieron más caras</span>
         </div>
       </div>
+
+      {r.esperas > 0 && (
+        <div className="stats waits">
+          <div className="stat good">
+            <span className="label">En lo que te dijo "espera"</span>
+            <strong>{(r.ahorro_en_esperas_pct * 100).toFixed(1).replace(".", ",")} % menos</strong>
+            <span className="muted small">pagaste por esas compras</span>
+          </div>
+          <div className="stat">
+            <span className="label">Veces que esperar salió bien</span>
+            <strong>{r.esperas_acertadas} de {r.esperas}</strong>
+            <span className="muted small">el resto de la lista se compró como siempre</span>
+          </div>
+          <div className="stat">
+            <span className="label">La mejor semana ({day(r.mejor_semana.semana_inicio)})</span>
+            <strong>{signed(r.mejor_semana.ahorro)}</strong>
+            <span className="muted small">{(r.mejor_semana.ahorro_pct * 100).toFixed(1).replace(".", ",")} % del mercado de esa semana</span>
+          </div>
+        </div>
+      )}
 
       <div className="compare">
         <div><span>Comprando todo ya, como siempre</span><span>{pesos(r.costo_habitual)}</span></div>
